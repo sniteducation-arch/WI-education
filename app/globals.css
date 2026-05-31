@@ -1,26 +1,65 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* ─── Material You Color Tokens ─────────────────────── */
+  --color-primary:                  #0d2067;
+  --color-primary-container:        #28387e;
+  --color-on-primary:               #ffffff;
+  --color-on-primary-container:     #95a5f2;
+  --color-primary-fixed:            #dde1ff;
+  --color-secondary:                #346b00;
+  --color-secondary-container:      #abf374;
+  --color-on-secondary:             #ffffff;
+  --color-on-secondary-container:   #367000;
+  --color-surface:                  #f8f9fa;
+  --color-surface-container-low:    #f3f4f5;
+  --color-surface-container:        #edeeef;
+  --color-surface-container-high:   #e7e8e9;
+  --color-on-surface:               #191c1d;
+  --color-on-surface-variant:       #454651;
+  --color-outline:                  #767682;
+  --color-outline-variant:          #c6c5d2;
+  --color-error:                    #ba1a1a;
+  --color-esewa:                    #60BB46;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ─── Material Symbols icon style ─────────────────────── */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined', sans-serif;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: 24px;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: middle;
+  user-select: none;
+  text-rendering: optimizeLegibility;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ─── Base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
+  background: #f8f9fa;
+  color: #191c1d;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+input, textarea, button, select { font-family: inherit; }
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+/* Heading font helper */
+.font-display {
+  font-family: 'Manrope', system-ui, sans-serif;
 }

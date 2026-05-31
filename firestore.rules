@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users can ONLY read their own profile.
+    // ALL writes go through Firebase Admin SDK in server-side API routes.
+    // This prevents clients from self-granting paid access, unbanning themselves,
+    // or manipulating any security fields.
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false;
+    }
+
+    // QR payment requests:
+    // - Users can read their own request (to check status on /payment/pending)
+    // - Users can create their own request, but ONLY with safe fields and pending status
+    // - No updates or deletes from client — admin only via Admin SDK
+    match /qr_requests/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.uid == userId
+        && request.resource.data.status == "pending"
+        && request.resource.data.amount is number
+        && request.resource.data.amount <= 1000
+        && request.resource.data.keys().hasOnly([
+            "uid", "readableId", "name", "email", "note",
+            "amount", "status", "submittedAt"
+           ]);
+
+      allow update, delete: if false;
+    }
+  }
+}

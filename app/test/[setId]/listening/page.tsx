@@ -1,0 +1,198 @@
+"use client";
+import { use, useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useAuth } from "@/components/AuthProvider";
+import { testSets, calculateGrade, ListeningQuestion } from "@/lib/questions";
+import { listeningAudioUrls } from "@/lib/listening-audio-urls";
+import { ArrowLeft, Clock, ChevronLeft, ChevronRight, Volume2 } from "lucide-react";
+
+const TOTAL_TIME = 25 * 60;
+
+export default function ListeningPage({ params }: { params: Promise<{ setId: string }> }) {
+  const { setId } = use(params);
+  const router = useRouter();
+  const setNum = parseInt(setId);
+  const questions = testSets[setNum]?.listening || [];
+
+  const { user, authLoading } = useAuth();
+  const [uid, setUid] = useState("");
+  const [current, setCurrent] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
+  const [submitted, setSubmitted] = useState(false);
+  const [result, setResult] = useState<ReturnType<typeof calculateGrade> | null>(null);
+  const [showTranscript, setShowTranscript] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) { router.push("/"); return; }
+    setUid(user.uid);
+  }, [authLoading, user, router]);
+
+  useEffect(() => {
+    setShowTranscript(false);
+  }, [current]);
+
+  useEffect(() => {
+    if (submitted) return;
+    timerRef.current = setInterval(() => {
+      setTimeLeft((t) => { if (t <= 1) { handleSubmit(); return 0; } return t - 1; });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [submitted]);
+
+  const handleSubmit = async () => {
+    clearInterval(timerRef.current);
+    let score = 0;
+    questions.forEach((q) => { if (answers[q.id] === q.answer) score += q.points; });
+    const total = questions.reduce((s, q) => s + q.points, 0);
+    const grade = calculateGrade(score, total);
+    setResult(grade);
+    setSubmitted(true);
+    if (uid) {
+      try {
+        const ref = doc(db, "users", uid);
+        const snap = await getDoc(ref);
+        const existing = snap.data()?.progress || {};
+        await updateDoc(ref, {
+          progress: {
+            ...existing,
+            [`set${setNum}`]: { ...(existing[`set${setNum}`] || {}), listening: grade.percentage, listeningGrade: grade.grade },
+          },
+        });
+      } catch { /* non-critical */ }
+    }
+  };
+
+  const q = questions[current];
+  const audioUrl = q ? listeningAudioUrls[q.id] : undefined;
+  const mm = String(Math.floor(timeLeft / 60)).padStart(2, "0");
+  const ss = String(timeLeft % 60).padStart(2, "0");
+
+  if (submitted && result) return (
+    <SimpleResult result={result} setNum={setNum} module="Listening" onBack={() => router.push(`/test/${setId}`)} />
+  );
+
+  return (
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
+      <div style={{ background: "linear-gradient(135deg, #78350f, #d97706)", padding: "16px 20px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <button onClick={() => router.push(`/test/${setId}`)} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 8, padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: "#fff", fontSize: 13 }}>
+            <ArrowLeft size={14} /> Back
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "6px 12px" }}>
+            <Clock size={14} color="#fff" />
+            <span style={{ color: "#fff", fontWeight: 700, fontSize: 15, fontVariantNumeric: "tabular-nums" }}>{mm}:{ss}</span>
+          </div>
+        </div>
+        <p style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>Listening · Set {setNum}</p>
+        <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>Question {current + 1} of {questions.length}</p>
+        <div style={{ marginTop: 10, background: "rgba(255,255,255,0.2)", borderRadius: 4, height: 4 }}>
+          <div style={{ height: 4, borderRadius: 4, background: "#fff", width: `${((current + 1) / questions.length) * 100}%` }} />
+        </div>
+      </div>
+
+      <div style={{ flex: 1, padding: "20px 16px", overflowY: "auto" }}>
+        {/* Audio player */}
+        <div style={{ background: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: 12, padding: 14, marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <Volume2 size={18} color="#92400e" />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#92400e" }}>Part {q?.part} · Listen and Answer</span>
+          </div>
+          {audioUrl ? (
+            <audio
+              key={audioUrl}
+              controls
+              style={{ width: "100%", borderRadius: 8, outline: "none" }}
+            >
+              <source src={audioUrl} type="audio/mpeg" />
+            </audio>
+          ) : (
+            <>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <p style={{ fontSize: 12, color: "#92400e", margin: 0 }}>Audio transcript:</p>
+                <button
+                  onClick={() => setShowTranscript(!showTranscript)}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#b45309", fontSize: 12, fontWeight: 600 }}
+                >
+                  {showTranscript ? "Hide" : "Show"}
+                </button>
+              </div>
+              {showTranscript && (
+                <p style={{ fontSize: 13, color: "#78350f", lineHeight: 1.7, fontStyle: "italic", marginTop: 8 }}>{q?.transcript}</p>
+              )}
+              {!showTranscript && (
+                <p style={{ fontSize: 12, color: "#92400e", marginTop: 4 }}>
+                  Read the transcript carefully, then answer the question below.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+
+        <p style={{ fontSize: 15, fontWeight: 600, color: "#1e293b", lineHeight: 1.6, marginBottom: 18 }}>
+          Q{current + 1}. {q?.question}
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {q?.options?.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => setAnswers((a) => ({ ...a, [q.id]: opt }))}
+              style={{
+                background: answers[q.id] === opt ? "#fef3c7" : "#f8fafc",
+                border: `2px solid ${answers[q.id] === opt ? "#f59e0b" : "#e2e8f0"}`,
+                borderRadius: 12,
+                padding: "13px 16px",
+                fontSize: 14,
+                color: answers[q.id] === opt ? "#92400e" : "#374151",
+                fontWeight: answers[q.id] === opt ? 600 : 400,
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: "12px 16px 24px", background: "#fff", borderTop: "1px solid #f1f5f9", display: "flex", gap: 10 }}>
+        <button onClick={() => setCurrent((c) => Math.max(0, c - 1))} disabled={current === 0} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, background: "#f1f5f9", color: "#64748b", border: "none", borderRadius: 12, padding: "13px 0", fontSize: 14, fontWeight: 600, cursor: "pointer", opacity: current === 0 ? 0.4 : 1 }}>
+          <ChevronLeft size={18} /> Previous
+        </button>
+        {current < questions.length - 1 ? (
+          <button onClick={() => setCurrent((c) => c + 1)} style={{ flex: 2, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, background: "linear-gradient(135deg, #78350f, #d97706)", color: "#fff", border: "none", borderRadius: 12, padding: "13px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+            Next <ChevronRight size={18} />
+          </button>
+        ) : (
+          <button onClick={handleSubmit} style={{ flex: 2, background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", border: "none", borderRadius: 12, padding: "13px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+            Submit Test
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SimpleResult({ result, setNum, module, onBack }: { result: ReturnType<typeof calculateGrade>; setNum: number; module: string; onBack: () => void }) {
+  const gradeColors: Record<string, string> = { B1: "#16a34a", A2: "#f59e0b", A1: "#ef4444" };
+  const color = gradeColors[result.grade];
+  return (
+    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center" }}>
+      <div style={{ width: 90, height: 90, borderRadius: "50%", background: color, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20, fontSize: 30, fontWeight: 800, color: "#fff" }}>
+        {result.grade}
+      </div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: "#1e293b", marginBottom: 8 }}>{module} Complete</h2>
+      <p style={{ fontSize: 16, color, fontWeight: 600 }}>{result.label}</p>
+      <p style={{ color: "#64748b", marginTop: 4, marginBottom: 16 }}>{result.score}/{result.total} · {result.percentage}%</p>
+      <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.6, maxWidth: 320, marginBottom: 32 }}>{result.feedback}</p>
+      <button onClick={onBack} style={{ background: "linear-gradient(135deg, #1e3a8a, #3b5fc0)", color: "#fff", border: "none", borderRadius: 14, padding: "15px 40px", fontSize: 16, fontWeight: 700, cursor: "pointer" }}>
+        Back to Set {setNum}
+      </button>
+    </div>
+  );
+}
