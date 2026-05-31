@@ -7,6 +7,7 @@ export interface MCQQuestion {
   options: string[];
   correct: number;
   points: number;
+  audioUrl?: string;
 }
 
 export interface TextQuestion {
@@ -29,6 +30,7 @@ export interface ExamPart {
   title: string;
   directions: string;
   questions: ExamQuestion[];
+  audioUrl?: string;
 }
 
 export interface ExamSection {
@@ -44,6 +46,9 @@ export interface ExamSection {
 
 // ─── LISTENING SECTION ───────────────────────────────────────────────────────
 
+const BASE_AUDIO = "https://firebasestorage.googleapis.com/v0/b/moral-educare.firebasestorage.app/o/full-exam-audio%2F";
+const mp3 = (id: string) => `${BASE_AUDIO}${encodeURIComponent(id)}.mp3?alt=media`;
+
 const listeningSection: ExamSection = {
   id: "listening",
   title: "Listening",
@@ -51,16 +56,16 @@ const listeningSection: ExamSection = {
   durationMinutes: 25,
   color: "#92400e",
   bg: "#fffbeb",
-  overview: "You will hear five different recordings. Answer the questions by choosing the best option. In the real test you would listen to audio — here you will read the transcript and answer questions.",
+  overview: "You will hear five different recordings. Answer the questions by choosing the best option.",
   parts: [
     {
       id: "L1",
       partNum: 1,
       title: "Part 1 — Short Conversations",
-      directions: "Read the five short conversations. For each conversation, choose the best answer A, B or C.",
+      directions: "Listen to the five short conversations. For each conversation, choose the best answer A, B or C.",
       questions: [
         {
-          id: "L1Q1", type: "mcq", points: 1,
+          id: "L1Q1", type: "mcq", points: 1, audioUrl: mp3("fe-l1q1"),
           context: `Supervisor: Good morning. Has Mr. Yamamoto taken his blood pressure medication?\nCaregiver: He took it at 7am, just before breakfast.\nSupervisor: Good. Did he eat a full meal?\nCaregiver: He had porridge and orange juice. He left the toast.`,
           contextLabel: "Conversation 1",
           question: "What did Mr. Yamamoto eat for breakfast?",
@@ -68,7 +73,7 @@ const listeningSection: ExamSection = {
           correct: 1,
         },
         {
-          id: "L1Q2", type: "mcq", points: 1,
+          id: "L1Q2", type: "mcq", points: 1, audioUrl: mp3("fe-l1q2"),
           context: `Doctor: The patient in Room 4 needs her vitals checked every three hours, not two.\nNurse: Should I update the chart now?\nDoctor: Yes, and please tell the night shift caregiver.\nNurse: I will do it before I leave at 6pm.`,
           contextLabel: "Conversation 2",
           question: "How often should the patient's vitals be checked?",
@@ -76,7 +81,7 @@ const listeningSection: ExamSection = {
           correct: 1,
         },
         {
-          id: "L1Q3", type: "mcq", points: 1,
+          id: "L1Q3", type: "mcq", points: 1, audioUrl: mp3("fe-l1q3"),
           context: `Family member: My grandmother is being discharged on Friday. What time can we pick her up?\nCaregiver: The doctor signs the paperwork in the morning, so usually after 11am.\nFamily member: Can we come at 10?\nCaregiver: I'd recommend 11:30 to be safe — sometimes there's a delay.`,
           contextLabel: "Conversation 3",
           question: "What time does the caregiver recommend picking up the patient?",
@@ -84,7 +89,7 @@ const listeningSection: ExamSection = {
           correct: 2,
         },
         {
-          id: "L1Q4", type: "mcq", points: 1,
+          id: "L1Q4", type: "mcq", points: 1, audioUrl: mp3("fe-l1q4"),
           context: `Caregiver A: I can't find the new patient's allergy information anywhere.\nCaregiver B: Did you check the blue folder on the nurses' station?\nCaregiver A: Yes, it's not there.\nCaregiver B: Then call the admissions office — they have all incoming patient files.`,
           contextLabel: "Conversation 4",
           question: "Where should the caregiver look for the allergy information?",
@@ -92,7 +97,7 @@ const listeningSection: ExamSection = {
           correct: 2,
         },
         {
-          id: "L1Q5", type: "mcq", points: 1,
+          id: "L1Q5", type: "mcq", points: 1, audioUrl: mp3("fe-l1q5"),
           context: `Manager: All staff must complete the fire safety training by the end of this month.\nCaregiver: Is it the online module or the classroom session?\nManager: Both. The online part takes about 45 minutes, and the practical session is on Thursday morning.\nCaregiver: Does it matter what order we do them in?\nManager: Please do the online part first.`,
           contextLabel: "Conversation 5",
           question: "What should the caregiver do first?",
@@ -105,7 +110,8 @@ const listeningSection: ExamSection = {
       id: "L2",
       partNum: 2,
       title: "Part 2 — Staff Meeting Discussion",
-      directions: "Read the transcript of a care home staff meeting. Choose the best answer A, B or C for each question.",
+      audioUrl: mp3("fe-l2"),
+      directions: "Listen to the care home staff meeting. Choose the best answer A, B or C for each question.",
       questions: [
         {
           id: "L2Q1", type: "mcq", points: 1,
@@ -153,7 +159,8 @@ const listeningSection: ExamSection = {
       id: "L3",
       partNum: 3,
       title: "Part 3 — Phone Message",
-      directions: "Read the telephone message. Choose the best word or phrase (A, B or C) to complete each gap.",
+      audioUrl: mp3("fe-l3"),
+      directions: "Listen to the telephone message. Choose the best word or phrase (A, B or C) to complete each gap.",
       questions: [
         {
           id: "L3Q1", type: "mcq", points: 1,
@@ -201,7 +208,8 @@ const listeningSection: ExamSection = {
       id: "L4",
       partNum: 4,
       title: "Part 4 — Training Talk",
-      directions: "Read the transcript of a training session for new caregivers. Choose the best answer A, B or C.",
+      audioUrl: mp3("fe-l4"),
+      directions: "Listen to the training session for new caregivers. Choose the best answer A, B or C.",
       questions: [
         {
           id: "L4Q1", type: "mcq", points: 1,
@@ -249,7 +257,8 @@ const listeningSection: ExamSection = {
       id: "L5",
       partNum: 5,
       title: "Part 5 — Caregiver Interview",
-      directions: "Read the interview with an experienced caregiver working abroad. Choose the best answer A, B or C.",
+      audioUrl: mp3("fe-l5"),
+      directions: "Listen to the interview with an experienced caregiver working abroad. Choose the best answer A, B or C.",
       questions: [
         {
           id: "L5Q1", type: "mcq", points: 1,

@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
 
     // Save/update user doc — never overwrite paid status
     const existing = await db.collection("users").doc(uid).get();
+    const isNewUser = !existing.exists;
     const docData: Record<string, unknown> = {
       name: name || "",
       email: email || "",
@@ -54,8 +55,24 @@ export async function POST(req: NextRequest) {
       readableId,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     };
-    if (!existing.exists) docData.paid = false;
+    if (isNewUser) docData.paid = false;
     await db.collection("users").doc(uid).set(docData, { merge: true });
+
+    // Notify admin of new registration
+    if (isNewUser) {
+      try {
+        await db.collection("admin_notifications").add({
+          type: "new_user",
+          uid,
+          name: name || "",
+          email: email || "",
+          phone: phone || "",
+          readableId,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          read: false,
+        });
+      } catch { /* non-critical */ }
+    }
 
     return NextResponse.json({ readableId });
   } catch (err) {

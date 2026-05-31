@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
+import { getAdminAuth, getAdminDb, admin } from "@/lib/firebase-admin";
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,7 +52,23 @@ export async function POST(req: NextRequest) {
       deviceMismatchCount: newCount,
       activeSessionId: sessionId,
       suspicious: true,
+      lastSuspiciousAt: admin.firestore.FieldValue.serverTimestamp(),
     });
+
+    // Write admin notification for suspicious login
+    try {
+      await db.collection("admin_notifications").add({
+        type: "suspicious_login",
+        uid,
+        name: data.name || "",
+        email: data.email || "",
+        readableId: data.readableId || "",
+        deviceMismatchCount: newCount,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        read: false,
+      });
+    } catch { /* non-critical */ }
+
     return NextResponse.json({ status: "warning" });
 
   } catch (err) {

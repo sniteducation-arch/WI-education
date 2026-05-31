@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { getIdToken } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAuth } from "@/components/AuthProvider";
+import { Volume2 } from "lucide-react";
 import {
   FULL_EXAM_SECTIONS,
   TOTAL_EXAM_MINUTES,
@@ -355,6 +356,31 @@ export default function FullExamTest() {
       {/* Question body */}
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 20px" }}>
 
+        {/* Audio player for listening section */}
+        {section.id === "listening" && isMCQ && (() => {
+          const audioUrl = q.audioUrl ?? part.audioUrl;
+          if (!audioUrl) return null;
+          const isPerQuestion = !!q.audioUrl;
+          return (
+            <div style={{ background: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: 12, padding: 14, marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <Volume2 size={16} color="#92400e" />
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#92400e" }}>
+                  {isPerQuestion ? `${q.contextLabel || `Conversation ${qIdx + 1}`} — Listen` : `${part.title} — Listen`}
+                </span>
+              </div>
+              <audio
+                key={audioUrl}
+                controls
+                style={{ width: "100%", borderRadius: 8, outline: "none" }}
+              >
+                <source src={audioUrl} type="audio/mpeg" />
+                Your browser does not support audio.
+              </audio>
+            </div>
+          );
+        })()}
+
         {/* Context (passage / transcript) */}
         {isMCQ && q.context && q.context !== "Same transcript as above." && q.context !== "Same email." && q.context !== "Same article." && q.context !== "Same telephone message." && q.context !== "Same training transcript." && q.context !== "Same interview." && (
           <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #c6c5d2", padding: 14, marginBottom: 14 }}>
@@ -364,7 +390,9 @@ export default function FullExamTest() {
         )}
         {isMCQ && q.contextLabel && q.contextLabel !== "" && (q.context === "Same transcript as above." || q.context === "Same email." || q.context === "Same article." || q.context === "Same telephone message." || q.context === "Same training transcript." || q.context === "Same interview.") && (
           <div style={{ background: "#f8f9fa", borderRadius: 8, padding: "8px 12px", marginBottom: 12, border: "1px dashed #c6c5d2" }}>
-            <p style={{ fontSize: 12, color: "#767682" }}>↑ Refer to the passage above for this question.</p>
+            <p style={{ fontSize: 12, color: "#767682" }}>
+              {section.id === "listening" ? "🔊 Refer to the audio above for this question." : "↑ Refer to the passage above for this question."}
+            </p>
           </div>
         )}
 

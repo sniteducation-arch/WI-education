@@ -163,7 +163,7 @@ function GoogleBtn({ router }: { router: ReturnType<typeof useRouter> }) {
         toast.error("This domain is not authorised. Add it in Firebase Console → Authentication → Settings → Authorised domains.");
         setLoading(false);
       } else {
-        toast.error(`Sign-in error: ${code || "unknown"}`);
+        toast.error("Google sign-in failed. Please try again or use email and password.");
         setLoading(false);
       }
     }

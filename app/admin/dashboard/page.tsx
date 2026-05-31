@@ -28,16 +28,31 @@ interface SuspiciousAccount {
   banned: boolean;
   banReason: string;
   deviceMismatchCount: number;
+  lastSuspiciousAt: string | null;
+}
+
+interface AdminNotification {
+  id: string;
+  type: "new_user" | "suspicious_login";
+  uid: string;
+  name: string;
+  email: string;
+  phone?: string;
+  readableId?: string;
+  deviceMismatchCount?: number;
+  createdAt: string | null;
+  read: boolean;
 }
 
 type Filter = "pending" | "approved" | "rejected" | "all";
-type AdminTab = "payments" | "suspicious";
+type AdminTab = "payments" | "suspicious" | "notifications";
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<AdminTab>("payments");
+  const [activeTab, setActiveTab] = useState<AdminTab>("notifications");
   const [requests, setRequests] = useState<Request[]>([]);
   const [suspiciousAccounts, setSuspiciousAccounts] = useState<SuspiciousAccount[]>([]);
+  const [adminNotifications, setAdminNotifications] = useState<AdminNotification[]>([]);
   const [filter, setFilter] = useState<Filter>("pending");
   const [loading, setLoading] = useState(true);
   const [adminEmail, setAdminEmail] = useState("");
@@ -55,6 +70,7 @@ export default function AdminDashboard() {
       const data = await res.json();
       setRequests(data.requests || []);
       setSuspiciousAccounts(data.suspiciousAccounts || []);
+      setAdminNotifications(data.adminNotifications || []);
     } catch {
       toast.error("Failed to load requests.");
     }
@@ -186,7 +202,7 @@ export default function AdminDashboard() {
         <div>
           <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 2 }}>ADMIN PORTAL</p>
           <h1 style={{ fontFamily: H, fontSize: 18, fontWeight: 700, color: "#fff" }}>
-            {activeTab === "payments" ? "Payment Approvals" : "Suspicious Accounts"}
+            {activeTab === "payments" ? "Payment Approvals" : activeTab === "suspicious" ? "Suspicious Accounts" : "Admin Alerts"}
           </h1>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -199,19 +215,62 @@ export default function AdminDashboard() {
       </header>
 
       {/* Main tab switcher */}
-      <div style={{ display: "flex", background: "#0d2067", padding: "0 16px 14px", gap: 8 }}>
-        {([["payments", "💳 Payments"], ["suspicious", "🚨 Suspicious"]] as [AdminTab, string][]).map(([tab, label]) => (
-          <button key={tab} onClick={() => setActiveTab(tab)}
-            style={{ flex: 1, padding: "9px 0", borderRadius: 9999, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, background: activeTab === tab ? "#fff" : "rgba(255,255,255,0.15)", color: activeTab === tab ? "#0d2067" : "#fff", fontFamily: "inherit", position: "relative" }}>
-            {label}
-            {tab === "suspicious" && suspiciousAccounts.length > 0 && (
-              <span style={{ position: "absolute", top: -4, right: 8, background: "#ef4444", color: "#fff", borderRadius: 9999, fontSize: 10, fontWeight: 800, padding: "1px 6px" }}>
-                {suspiciousAccounts.length}
-              </span>
-            )}
-          </button>
-        ))}
+      <div style={{ display: "flex", background: "#0d2067", padding: "0 16px 14px", gap: 6 }}>
+        {([
+          ["notifications", "🔔 Alerts"],
+          ["payments", "💳 Payments"],
+          ["suspicious", "🚨 Suspicious"],
+        ] as [AdminTab, string][]).map(([tab, label]) => {
+          const badge = tab === "suspicious" ? suspiciousAccounts.length
+            : tab === "notifications" ? adminNotifications.filter((n) => !n.read).length
+            : 0;
+          return (
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              style={{ flex: 1, padding: "9px 0", borderRadius: 9999, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, background: activeTab === tab ? "#fff" : "rgba(255,255,255,0.15)", color: activeTab === tab ? "#0d2067" : "#fff", fontFamily: "inherit", position: "relative" }}>
+              {label}
+              {badge > 0 && (
+                <span style={{ position: "absolute", top: -4, right: 6, background: "#ef4444", color: "#fff", borderRadius: 9999, fontSize: 10, fontWeight: 800, padding: "1px 5px" }}>
+                  {badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
+
+      {/* ── NOTIFICATIONS TAB ───────────────────────────────────────── */}
+      {activeTab === "notifications" && (
+        <div style={{ padding: "16px 16px 32px", display: "flex", flexDirection: "column", gap: 12 }}>
+          {adminNotifications.length === 0 && (
+            <div style={{ textAlign: "center", padding: "40px 20px", color: "#767682" }}>
+              <p style={{ fontSize: 32, marginBottom: 8 }}>🔔</p>
+              <p style={{ fontSize: 15 }}>No notifications yet</p>
+            </div>
+          )}
+          {adminNotifications.map((n) => (
+            <div key={n.id} style={{ background: "#fff", borderRadius: 14, border: `1.5px solid ${n.type === "suspicious_login" ? "#fde68a" : "#bbf7d0"}`, padding: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                <div>
+                  <p style={{ fontFamily: H, fontSize: 14, fontWeight: 700, color: "#191c1d" }}>
+                    {n.type === "new_user" ? "🆕 New Registration" : "⚠️ Suspicious Login"}
+                  </p>
+                  <p style={{ fontSize: 12, color: "#454651", marginTop: 2 }}>{n.name} — {n.email}</p>
+                </div>
+                <span style={{ fontSize: 10, color: "#767682", whiteSpace: "nowrap" }}>
+                  {n.createdAt ? new Date(n.createdAt).toLocaleString("en-GB") : "—"}
+                </span>
+              </div>
+              <div style={{ background: "#f8f9fa", borderRadius: 8, padding: 10, fontSize: 12, color: "#454651", display: "flex", flexDirection: "column", gap: 4 }}>
+                {n.readableId && <DetailRow label="User ID" value={n.readableId} />}
+                {n.phone && <DetailRow label="Phone" value={n.phone} />}
+                {n.type === "suspicious_login" && n.deviceMismatchCount !== undefined && (
+                  <DetailRow label="Mismatch #" value={`${n.deviceMismatchCount} different device(s)`} />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── SUSPICIOUS ACCOUNTS TAB ─────────────────────────────────── */}
       {activeTab === "suspicious" && (
