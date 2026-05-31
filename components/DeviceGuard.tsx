@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 
 // ── Fingerprint ───────────────────────────────────────────────────────────────
 function getFingerprint(): string {
+  if (typeof navigator === "undefined") return ""; // SSR guard
   const parts = [
     navigator.userAgent,
     navigator.language,
@@ -25,6 +26,7 @@ function getFingerprint(): string {
 
 // ── Session ID (per browser tab / login) ─────────────────────────────────────
 function getSessionId(): string {
+  if (typeof sessionStorage === "undefined") return ""; // SSR guard
   let id = sessionStorage.getItem("_sid");
   if (!id) {
     id = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -90,6 +92,8 @@ export default function DeviceGuard({ children }: { children: ReactNode }) {
       try {
         const token = await getIdToken(user);
         const fingerprint = getFingerprint();
+        // Ensure session ID is populated on client (was "" during SSR)
+        if (!sessionId.current) sessionId.current = getSessionId();
         const sid = sessionId.current;
 
         const res = await fetch("/api/user/check-device", {
