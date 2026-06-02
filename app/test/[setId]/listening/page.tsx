@@ -1,5 +1,5 @@
 "use client";
-import { use, useState, useEffect, useRef } from "react";
+import { use, useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -7,6 +7,110 @@ import { useAuth } from "@/components/AuthProvider";
 import { testSets, calculateGrade, ListeningQuestion } from "@/lib/questions";
 import { listeningAudioUrls } from "@/lib/listening-audio-urls";
 import { ArrowLeft, Clock, ChevronLeft, ChevronRight, Volume2 } from "lucide-react";
+
+const MAX_PLAYS = 3;
+
+// Group consecutive questions that share the same transcript into one audio block
+function groupQuestions(qs: ListeningQuestion[]) {
+  const groups: Array<{ transcript: string; questions: ListeningQuestion[]; firstQIdx: number }> = [];
+  for (let i = 0; i < qs.length; i++) {
+    const q = qs[i];
+    const last = groups[groups.length - 1];
+    if (last && last.transcript === q.transcript) {
+      last.questions.push(q);
+    } else {
+      groups.push({ transcript: q.transcript, questions: [q], firstQIdx: i });
+    }
+  }
+  return groups;
+}
+
+function OnDemandPlayer({ transcript }: { transcript: string }) {
+  const [state, setState] = useState<"idle" | "loading" | "playing" | "paused" | "error">("idle");
+  const [playsUsed, setPlaysUsed] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (state === "loading" || playsUsed >= MAX_PLAYS) return;
+    setState("loading");
+    try {
+      const res = await fetch("/api/listening/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: transcript }),
+      });
+      if (!res.ok) throw new Error("TTS failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      blobUrlRef.current = url;
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => setState("idle");
+      audio.onpause = () => setState("paused");
+      audio.onplay = () => setState("playing");
+      audio.play();
+      setPlaysUsed((p) => p + 1);
+    } catch {
+      setState("error");
+    }
+  }, [transcript, state, playsUsed]);
+
+  const toggle = useCallback(() => {
+    if (!audioRef.current) { load(); return; }
+    if (state === "playing") audioRef.current.pause();
+    else audioRef.current.play();
+  }, [state, load]);
+
+  const replay = useCallback(() => {
+    if (playsUsed >= MAX_PLAYS || !audioRef.current) return;
+    audioRef.current.currentTime = 0;
+    audioRef.current.play();
+    setPlaysUsed((p) => p + 1);
+  }, [playsUsed]);
+
+  useEffect(() => () => {
+    audioRef.current?.pause();
+    if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+  }, []);
+
+  const exhausted = playsUsed >= MAX_PLAYS;
+
+  return (
+    <div>
+      <p style={{ fontSize: 12, color: "#78350f", marginBottom: 10, lineHeight: 1.5 }}>
+        Listen carefully. You can play the audio up to {MAX_PLAYS} times.
+      </p>
+      <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
+        {Array.from({ length: MAX_PLAYS }).map((_, i) => (
+          <div key={i} style={{ flex: 1, height: 4, borderRadius: 9999, background: i < playsUsed ? "#b45309" : "#fde68a" }} />
+        ))}
+      </div>
+      <p style={{ fontSize: 11, color: "#92400e", fontWeight: 600, marginBottom: 10 }}>
+        {exhausted ? "Maximum plays reached." : `${MAX_PLAYS - playsUsed} play${MAX_PLAYS - playsUsed !== 1 ? "s" : ""} remaining`}
+      </p>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button
+          onClick={toggle}
+          disabled={state === "loading" || exhausted}
+          style={{ flex: 2, background: exhausted ? "#e2e8f0" : state === "playing" ? "#b45309" : "#92400e", color: exhausted ? "#94a3b8" : "#fff", border: "none", borderRadius: 9, padding: "10px 0", fontSize: 13, fontWeight: 700, cursor: (state === "loading" || exhausted) ? "not-allowed" : "pointer", opacity: state === "loading" ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+        >
+          {state === "loading" ? (
+            <><span style={{ display: "inline-block", width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} /> Generating…</>
+          ) : state === "playing" ? "⏸ Pause" : exhausted ? "No plays left" : state === "paused" ? "▶ Resume" : "▶ Play Audio"}
+        </button>
+        {audioRef.current && !exhausted && state !== "playing" && (
+          <button onClick={replay} style={{ flex: 1, background: "#fef3c7", color: "#92400e", border: "1px solid #fde68a", borderRadius: 9, padding: "10px 0", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            ↻ Again
+          </button>
+        )}
+      </div>
+      {state === "error" && (
+        <p style={{ fontSize: 12, color: "#dc2626", marginTop: 8 }}>Audio generation failed. Please read the transcript.</p>
+      )}
+    </div>
+  );
+}
 
 const TOTAL_TIME = 25 * 60;
 
@@ -18,12 +122,12 @@ export default function ListeningPage({ params }: { params: Promise<{ setId: str
 
   const { user, authLoading } = useAuth();
   const [uid, setUid] = useState("");
-  const [current, setCurrent] = useState(0);
+  const [currentGroup, setCurrentGroup] = useState(0);
+  const groups = useMemo(() => groupQuestions(questions), [questions]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState<ReturnType<typeof calculateGrade> | null>(null);
-  const [showTranscript, setShowTranscript] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
@@ -31,10 +135,6 @@ export default function ListeningPage({ params }: { params: Promise<{ setId: str
     if (!user) { router.push("/"); return; }
     setUid(user.uid);
   }, [authLoading, user, router]);
-
-  useEffect(() => {
-    setShowTranscript(false);
-  }, [current]);
 
   useEffect(() => {
     if (submitted) return;
@@ -54,21 +154,44 @@ export default function ListeningPage({ params }: { params: Promise<{ setId: str
     setSubmitted(true);
     if (uid) {
       try {
+        const listeningQuestions = questions.map((q) => {
+          const ans = answers[q.id];
+          const correct = ans === q.answer;
+          return {
+            id: q.id,
+            part: q.part ?? 1,
+            transcript: q.transcript,
+            question: q.question,
+            type: q.type,
+            options: q.options ?? [],
+            userAnswer: ans ?? "(no answer)",
+            correctAnswer: q.answer,
+            correct,
+            pointsEarned: correct ? q.points : 0,
+            pointsMax: q.points,
+          };
+        });
+
         const ref = doc(db, "users", uid);
         const snap = await getDoc(ref);
         const existing = snap.data()?.progress || {};
         await updateDoc(ref, {
           progress: {
             ...existing,
-            [`set${setNum}`]: { ...(existing[`set${setNum}`] || {}), listening: grade.percentage, listeningGrade: grade.grade },
+            [`set${setNum}`]: {
+              ...(existing[`set${setNum}`] || {}),
+              listening: grade.percentage,
+              listeningGrade: grade.grade,
+              listeningQuestions,
+            },
           },
         });
       } catch { /* non-critical */ }
     }
   };
 
-  const q = questions[current];
-  const audioUrl = q ? listeningAudioUrls[q.id] : undefined;
+  const group = groups[currentGroup];
+  const audioUrl = group ? listeningAudioUrls[group.questions[0].id] : undefined;
   const mm = String(Math.floor(timeLeft / 60)).padStart(2, "0");
   const ss = String(timeLeft % 60).padStart(2, "0");
 
@@ -89,18 +212,26 @@ export default function ListeningPage({ params }: { params: Promise<{ setId: str
           </div>
         </div>
         <p style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>Listening · Set {setNum}</p>
-        <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>Question {current + 1} of {questions.length}</p>
+        <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>
+          {group && (
+            group.questions.length > 1
+              ? `Questions ${group.firstQIdx + 1}–${group.firstQIdx + group.questions.length} of ${questions.length}`
+              : `Question ${group.firstQIdx + 1} of ${questions.length}`
+          )}
+        </p>
         <div style={{ marginTop: 10, background: "rgba(255,255,255,0.2)", borderRadius: 4, height: 4 }}>
-          <div style={{ height: 4, borderRadius: 4, background: "#fff", width: `${((current + 1) / questions.length) * 100}%` }} />
+          <div style={{ height: 4, borderRadius: 4, background: "#fff", width: `${((currentGroup + 1) / groups.length) * 100}%` }} />
         </div>
       </div>
 
       <div style={{ flex: 1, padding: "20px 16px", overflowY: "auto" }}>
-        {/* Audio player */}
-        <div style={{ background: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: 12, padding: 14, marginBottom: 16 }}>
+        {/* Single audio player for this group */}
+        <div style={{ background: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: 12, padding: 14, marginBottom: 20 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Volume2 size={18} color="#92400e" />
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#92400e" }}>Part {q?.part} · Listen and Answer</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#92400e" }}>
+              Part {group?.questions[0].part} · Listen and Answer
+            </span>
           </div>
           {audioUrl ? (
             <audio
@@ -111,61 +242,48 @@ export default function ListeningPage({ params }: { params: Promise<{ setId: str
               <source src={audioUrl} type="audio/mpeg" />
             </audio>
           ) : (
-            <>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <p style={{ fontSize: 12, color: "#92400e", margin: 0 }}>Audio transcript:</p>
-                <button
-                  onClick={() => setShowTranscript(!showTranscript)}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "#b45309", fontSize: 12, fontWeight: 600 }}
-                >
-                  {showTranscript ? "Hide" : "Show"}
-                </button>
-              </div>
-              {showTranscript && (
-                <p style={{ fontSize: 13, color: "#78350f", lineHeight: 1.7, fontStyle: "italic", marginTop: 8 }}>{q?.transcript}</p>
-              )}
-              {!showTranscript && (
-                <p style={{ fontSize: 12, color: "#92400e", marginTop: 4 }}>
-                  Read the transcript carefully, then answer the question below.
-                </p>
-              )}
-            </>
+            <OnDemandPlayer key={group?.questions[0].id} transcript={group?.transcript ?? ""} />
           )}
         </div>
 
-        <p style={{ fontSize: 15, fontWeight: 600, color: "#1e293b", lineHeight: 1.6, marginBottom: 18 }}>
-          Q{current + 1}. {q?.question}
-        </p>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {q?.options?.map((opt) => (
-            <button
-              key={opt}
-              onClick={() => setAnswers((a) => ({ ...a, [q.id]: opt }))}
-              style={{
-                background: answers[q.id] === opt ? "#fef3c7" : "#f8fafc",
-                border: `2px solid ${answers[q.id] === opt ? "#f59e0b" : "#e2e8f0"}`,
-                borderRadius: 12,
-                padding: "13px 16px",
-                fontSize: 14,
-                color: answers[q.id] === opt ? "#92400e" : "#374151",
-                fontWeight: answers[q.id] === opt ? 600 : 400,
-                cursor: "pointer",
-                textAlign: "left",
-              }}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
+        {/* All questions for this audio group */}
+        {group?.questions.map((q, qi) => (
+          <div key={q.id} style={{ marginBottom: qi < group.questions.length - 1 ? 28 : 0 }}>
+            <p style={{ fontSize: 15, fontWeight: 600, color: "#1e293b", lineHeight: 1.6, marginBottom: 14 }}>
+              Q{group.firstQIdx + qi + 1}. {q.question}
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {q.options?.map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => setAnswers((a) => ({ ...a, [q.id]: opt }))}
+                  style={{
+                    background: answers[q.id] === opt ? "#fef3c7" : "#f8fafc",
+                    border: `2px solid ${answers[q.id] === opt ? "#f59e0b" : "#e2e8f0"}`,
+                    borderRadius: 12,
+                    padding: "13px 16px",
+                    fontSize: 14,
+                    color: answers[q.id] === opt ? "#92400e" : "#374151",
+                    fontWeight: answers[q.id] === opt ? 600 : 400,
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       <div style={{ padding: "12px 16px 24px", background: "#fff", borderTop: "1px solid #f1f5f9", display: "flex", gap: 10 }}>
-        <button onClick={() => setCurrent((c) => Math.max(0, c - 1))} disabled={current === 0} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, background: "#f1f5f9", color: "#64748b", border: "none", borderRadius: 12, padding: "13px 0", fontSize: 14, fontWeight: 600, cursor: "pointer", opacity: current === 0 ? 0.4 : 1 }}>
+        <button onClick={() => setCurrentGroup((g) => Math.max(0, g - 1))} disabled={currentGroup === 0} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, background: "#f1f5f9", color: "#64748b", border: "none", borderRadius: 12, padding: "13px 0", fontSize: 14, fontWeight: 600, cursor: "pointer", opacity: currentGroup === 0 ? 0.4 : 1 }}>
           <ChevronLeft size={18} /> Previous
         </button>
-        {current < questions.length - 1 ? (
-          <button onClick={() => setCurrent((c) => c + 1)} style={{ flex: 2, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, background: "linear-gradient(135deg, #78350f, #d97706)", color: "#fff", border: "none", borderRadius: 12, padding: "13px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+        {currentGroup < groups.length - 1 ? (
+          <button onClick={() => setCurrentGroup((g) => g + 1)} style={{ flex: 2, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, background: "linear-gradient(135deg, #78350f, #d97706)", color: "#fff", border: "none", borderRadius: 12, padding: "13px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
             Next <ChevronRight size={18} />
           </button>
         ) : (

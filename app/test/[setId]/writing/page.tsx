@@ -176,13 +176,27 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
       );
       setAiResults(evals);
 
-      // Save to Firebase using Part 2 grade (higher weight)
+      // Save to Firebase — grade + full per-part breakdown for transcript
       if (uid) {
         try {
           const mainEval = evals[1] ?? evals[0];
           const grade = mainEval ? (parseEval(mainEval).grade) : "A1";
           const gradeToPercent: Record<string, number> = { B1: 85, A2: 65, A1: 45, "Below A1": 25 };
           const percentage = gradeToPercent[grade] ?? 50;
+
+          const writingParts = prompts.map((p, i) => {
+            const evalText = evals[i] ?? "";
+            const e = evalText ? parseEval(evalText) : null;
+            return {
+              partNum: i + 1,
+              situation: p.situation,
+              task: p.task,
+              wordLimit: p.wordLimit,
+              studentAnswer: answers[i] || "",
+              evalText,
+              ...(e || { grade: "—", result: "—" }),
+            };
+          });
 
           const ref = doc(db, "users", uid);
           const snap = await getDoc(ref);
@@ -194,6 +208,7 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
                 ...(existing[`set${setNum}`] || {}),
                 writing: percentage,
                 writingGrade: grade,
+                writingParts,
               },
             },
           });
@@ -264,8 +279,9 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
 
   // ── Writing screen ──
   return (
-    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
-      <div style={{ background: "linear-gradient(135deg, #4c1d95, #7c3aed)", padding: "16px 20px" }}>
+    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      {/* Header */}
+      <div style={{ background: "linear-gradient(135deg, #4c1d95, #7c3aed)", padding: "16px 20px", flexShrink: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <button onClick={() => router.push(`/test/${setId}`)} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 8, padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: "#fff", fontSize: 13 }}>
             <ArrowLeft size={14} /> Back
@@ -284,18 +300,21 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
         </div>
       </div>
 
-      <div style={{ flex: 1, padding: "20px 16px", overflowY: "auto" }}>
-        <div style={{ background: "#f5f3ff", border: "1.5px solid #ddd6fe", borderRadius: 14, padding: 16, marginBottom: 18 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: "#7c3aed", marginBottom: 6 }}>SITUATION</p>
+      {/* Situation + Task — always visible, never scrolls away */}
+      <div style={{ padding: "14px 16px", background: "#faf8ff", borderBottom: "1.5px solid #ede9fe", flexShrink: 0 }}>
+        <div style={{ background: "#f5f3ff", border: "1.5px solid #ddd6fe", borderRadius: 12, padding: "12px 14px", marginBottom: 8 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: "#7c3aed", marginBottom: 4 }}>SITUATION</p>
           <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>{current?.situation}</p>
         </div>
-
-        <div style={{ background: "#fff", border: "1.5px solid #e2e8f0", borderRadius: 14, padding: 16, marginBottom: 16 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: "#1e3a8a", marginBottom: 6 }}>YOUR TASK</p>
+        <div style={{ background: "#fff", border: "1.5px solid #e2e8f0", borderRadius: 12, padding: "12px 14px" }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: "#1e3a8a", marginBottom: 4 }}>YOUR TASK</p>
           <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>{current?.task}</p>
-          <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 8 }}>Write approximately {current?.wordLimit} words.</p>
+          <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>Write approximately {current?.wordLimit} words.</p>
         </div>
+      </div>
 
+      {/* Write area — scrollable */}
+      <div style={{ flex: 1, padding: "16px 16px", overflowY: "auto" }}>
         <div style={{ position: "relative" }}>
           <textarea
             value={answers[part]}
