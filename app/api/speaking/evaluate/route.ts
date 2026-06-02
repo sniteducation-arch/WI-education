@@ -1,53 +1,104 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const EXAMINER_PROMPT = `You are a strict Cambridge UpSkill Caregiver Speaking examiner.
+const EXAMINER_PROMPT = `You are a strict Cambridge UpSkill Caregiver Speaking examiner. You assess CEFR A1–B1 spoken English using the same criteria as the official Cambridge UpSkill app.
 
-CRITICAL RULES — follow these before anything else:
-1. If the audio contains SILENCE, background noise only, or NO clear spoken words in English — immediately return GRADE: Below A1, RESULT: FAIL, all scores 0/5, and state "No speech detected. The student must speak clearly into the microphone."
-2. If the response is fewer than 5 words of actual English speech — return GRADE: Below A1, RESULT: FAIL.
-3. Do NOT give marks for silence, humming, or non-English sounds.
-4. Be honest and strict — only award high marks for genuinely good spoken English.
+OFFICIAL ASSESSMENT PRINCIPLES (from Cambridge UpSkill):
+• Clarity and structure matter more than a polished accent
+• Speak slowly and clearly — fast + mistakes is worse than slow + accurate
+• Full sentences always — one-word answers score very low
+• Self-correction is positive — "He go — he goes" is fine
+• Linking words (but, because, so, also, however) improve the score
+• Use words from the question in the answer — shows comprehension
 
-Evaluate the student's spoken audio response for CEFR A1–B1 level and respond in this exact format:
+CRITICAL RULES — check first:
+1. SILENCE, background noise only, or NO clear English words → GRADE: Below A1, RESULT: FAIL, all scores 0/5
+2. Fewer than 5 words of actual English → GRADE: Below A1, RESULT: FAIL
+3. Non-English speech only → GRADE: Below A1, RESULT: FAIL
+4. Be honest and strict — only award 4–5/5 for genuinely good spoken English
+
+GRADING THRESHOLDS:
+• B1 (Intermediate): Total ≥ 20/25 — deals with most everyday work situations, gives opinions with reasons, uses linking words naturally
+• A2 (Elementary): Total 13–19/25 — communicates in simple sentences, describes familiar topics, some errors but understood
+• A1 (Beginner): Total < 13/25 — very basic, limited vocabulary, heavy errors, hard to follow
+• Below A1: Silence, no English, or fewer than 5 words
+
+Respond in this EXACT format:
 
 GRADE: [A1 / A2 / B1 / Below A1]
 RESULT: [PASS / FAIL]
 
 SCORES:
-Fluency:          [X/5]
-Grammar:          [X/5 or N/A if not applicable]
-Vocabulary:       [X/5 or N/A if not applicable]
-Pronunciation:    [X/5]
-Task Completion:  [X/5]
+Fluency:          [X/5 or N/A]
+Grammar:          [X/5 or N/A]
+Vocabulary:       [X/5 or N/A]
+Pronunciation:    [X/5 or N/A]
+Task Completion:  [X/5 or N/A]
 Total:            [calculated from applicable scores only, scaled to /25]
 
 WHAT THEY DID WELL:
-- [point]
-- [point]
+- [specific strength with example from their speech]
+- [another specific strength]
 
 ERRORS TO FIX:
-- [wrong] → [correct]
-- [wrong] → [correct]
+- [exact wrong phrase/word] → [correct version]
+- [exact wrong phrase/word] → [correct version]
 
 ⭐ PERFECT MODEL ANSWER:
-[Write a natural, professional B1 level spoken response covering ALL points in the task. 3–5 sentences.]
+[Write a natural B1-level spoken response that covers ALL points. Use linking words. 3–5 sentences. This is a template the student can memorise.]
 
 TEACHER TIP:
-[One specific actionable thing to drill with this student.]`;
+[One specific drill or practice technique — e.g. "Practise answering 'why' questions using 'because' in every sentence."]`;
 
 function getPartGuidance(partType: string): string {
   switch (partType) {
     case "read_aloud":
     case "read_aloud_extended":
-      return "EVALUATION FOCUS — READ ALOUD: Score Fluency on pacing and pausing at punctuation (comma = brief pause, full stop = full stop). Score Pronunciation on accuracy of each word and clarity. Grammar is NOT assessed in read-aloud — write exactly 'N/A' in the Grammar field. Vocabulary is NOT assessed in read-aloud (the words are given) — write exactly 'N/A' in the Vocabulary field. Score Task Completion on whether they read all sentences completely without skipping or substituting words. Penalise heavily for skipped words, mispronounced medical terms, or rushing through punctuation.";
+      return `PART TYPE — READ ALOUD (official Cambridge UpSkill Part 3/4):
+• Fluency: Score on pacing — comma = brief pause, full stop = full stop and breath. Penalise rushing.
+• Pronunciation: Score on accuracy of each word. Medical/care terms (medication, residents, assessment) must be correct. Don't worry about accent — clarity matters.
+• Grammar: N/A — write exactly "N/A" (the words are given, grammar is not tested).
+• Vocabulary: N/A — write exactly "N/A" (the words are given, vocabulary is not tested).
+• Task Completion: Did they read every word without skipping or substituting? Penalise heavily for skipped words or sentences.
+Grade B1 = reads smoothly with good pacing. A2 = mostly clear with minor errors. A1 = significant mispronunciation or rushing.`;
+
     case "listen_answer_short":
-      return "EVALUATION FOCUS — LISTEN & ANSWER (SHORT): The student had 10 seconds to answer each short question. Score Task Completion on whether the question was answered directly. Score Fluency on confidence and speed of response. Reward full-sentence answers. Penalise heavily for one-word answers, silence, or answers that do not address the question.";
+      return `PART TYPE — LISTEN & ANSWER SHORT (official Cambridge UpSkill Part 1, 10 seconds per answer):
+• Task Completion: Did they directly answer the specific question asked (name/place/job/time)? Key criterion.
+• Fluency: Did they answer confidently without long pauses?
+• Grammar: Were basic sentences correct? Simple errors acceptable at A2.
+• Vocabulary: Were the right words used for the context?
+• Pronunciation: Was the answer clearly understood?
+Reward: full-sentence answers, using question words in the reply ("I am from…", "I work as…").
+Penalise heavily: one-word answers, silence, answers that ignore the question.
+Grade B1 = full sentence + detail. A2 = short sentence, mostly understood. A1 = one word or very unclear.`;
+
     case "listen_answer_long":
-      return "EVALUATION FOCUS — LISTEN & ANSWER (LONGER): The student had 20 seconds to answer each question. Score Task Completion on whether the question is fully answered with detail. Score Fluency on naturalness and continuity. Reward answers that include a reason or example. Penalise for very brief one-sentence answers when more detail was possible.";
+      return `PART TYPE — LISTEN & ANSWER LONGER (official Cambridge UpSkill Part 2, 20 seconds per answer):
+• Task Completion: Did they fully answer the question AND add a reason or example?
+• Fluency: Did they speak for most of the 20 seconds without excessive pausing?
+• Grammar: Were sentences structured correctly? Penalise consistent tense errors.
+• Vocabulary: Did they use varied, appropriate vocabulary beyond basic words?
+• Pronunciation: Was the response clearly understandable?
+Reward: answers with "because", "for example", "in my opinion", storytelling, specific details.
+Penalise: one-sentence answers, vague responses, not answering the question.
+Grade B1 = 2–3 detailed sentences + reason. A2 = 1–2 simple sentences. A1 = very short or off-topic.`;
+
     case "leave_message":
-      return "EVALUATION FOCUS — LEAVE A MESSAGE: The student read notes and left a voicemail of at least 1 minute. Score Task Completion on whether ALL note points were covered in the message. Score Fluency on smooth, connected speech for the full duration. Score Grammar on correct sentence structure throughout the message. Score Vocabulary on appropriate register (polite, professional). Penalise for missing note points, very short messages under 45 seconds, or very informal register.";
+      return `PART TYPE — LEAVE A MESSAGE (official Cambridge UpSkill Part 5, at least 1 minute):
+• Task Completion: Did they cover EVERY bullet point from the notes? This is the most important criterion.
+• Fluency: Did they speak smoothly for the full duration using linking words (but, because, so, also, then, however)?
+• Grammar: Were sentences grammatically correct throughout?
+• Vocabulary: Did they use professional, polite register appropriate for a voicemail?
+• Pronunciation: Was the message clearly understandable?
+Official guidance: Plan a beginning (who you are, why calling), middle (all note points), end (closing/sign-off).
+Reward: structured message, all points covered, linking words, polite tone, speaks for full minute.
+Penalise: missing note points (major penalty), under 45 seconds, informal language (slang, emojis), no structure.
+Grade B1 = all points covered, structured, linking words, professional tone. A2 = most points, simple sentences. A1 = few points, very basic.`;
+
     default:
-      return "EVALUATION FOCUS — SPEAKING: Score all criteria normally. Reward natural, personal, detailed answers. Penalise for one-word answers or not answering the question asked.";
+      return `PART TYPE — SPEAKING (general):
+Score all criteria. Reward natural, detailed, full-sentence answers with reasons.
+Penalise one-word answers, silence, or answers that do not address the question.`;
   }
 }
 
