@@ -583,7 +583,12 @@ export default function SpeakingPage({ params }: { params: Promise<{ setId: stri
       <div style={{ flex: 1, padding: "20px 16px", overflowY: "auto" }}>
         {/* Part label */}
         <div style={{ background: "#064e3b", borderRadius: 8, padding: "6px 12px", display: "inline-block", marginBottom: 12 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>{task?.partLabel?.toUpperCase()}</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
+            {task?.partLabel?.toUpperCase()}
+            {(task?.partType === "listen_answer_short" || task?.partType === "listen_answer_long") && (
+              <span style={{ marginLeft: 6, opacity: 0.8 }}>🎧</span>
+            )}
+          </p>
         </div>
 
         {/* Prep countdown */}
@@ -601,22 +606,23 @@ export default function SpeakingPage({ params }: { params: Promise<{ setId: stri
           <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.6 }}>{task?.instruction}</p>
         </div>
 
-        {/* Part 4 graphic */}
-        {task?.partType === "long_turn_graphic" && task.graphicUrl && (
-          <div style={{ background: "#fff", border: "1.5px solid #e2e8f0", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
-            <div style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0", padding: "8px 12px" }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: "#1e3a8a" }}>CHART / GRAPHIC</p>
-            </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={task.graphicUrl} alt={task.graphicAlt || "Speaking graphic"} style={{ width: "100%", display: "block" }} />
+        {/* Part 5: Leave a Message — show notes prominently */}
+        {task?.partType === "leave_message" && (
+          <div style={{ background: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: 12, padding: 14, marginBottom: 12 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 8 }}>📋 YOUR NOTES — cover all points in your message</p>
+            <p style={{ fontSize: 14, color: "#78350f", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{task.prompt}</p>
+            <p style={{ fontSize: 11, color: "#92400e", marginTop: 10, fontWeight: 600 }}>💡 Start with who you are · Cover every note point · Speak for at least 1 minute</p>
           </div>
         )}
 
-        {/* Prompt / Sub-question */}
+        {/* Prompt / Sub-question (not shown for leave_message — notes shown above) */}
+        {task?.partType !== "leave_message" && (
         <div style={{ background: "#fff", border: "1.5px solid #e2e8f0", borderRadius: 12, padding: 14, marginBottom: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <p style={{ fontSize: 11, fontWeight: 700, color: "#1e3a8a" }}>
-              {task?.partType === "read_aloud" ? "READ ALOUD" : task?.partType === "long_turn_graphic" ? "YOUR TASK" : "SPEAKING PROMPT"}
+              {(task?.partType === "read_aloud" || task?.partType === "read_aloud_extended") ? "READ ALOUD"
+                : (task?.partType === "listen_answer_short" || task?.partType === "listen_answer_long") ? "QUESTION"
+                : "SPEAKING PROMPT"}
             </p>
             {totalSubs > 1 && (
               <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", background: "#f1f5f9", borderRadius: 6, padding: "2px 8px" }}>
@@ -634,25 +640,16 @@ export default function SpeakingPage({ params }: { params: Promise<{ setId: stri
             </div>
           )}
 
-          <p style={{ fontSize: task?.partType === "read_aloud" ? 18 : 14, color: "#1e293b", lineHeight: 1.8, fontWeight: task?.partType === "read_aloud" ? 700 : 500, whiteSpace: "pre-wrap" }}>
+          <p style={{ fontSize: (task?.partType === "read_aloud" || task?.partType === "read_aloud_extended") ? 18 : 14, color: "#1e293b", lineHeight: 1.8, fontWeight: (task?.partType === "read_aloud" || task?.partType === "read_aloud_extended") ? 700 : 500, whiteSpace: "pre-wrap" }}>
             {currentPrompt}
           </p>
-          {task?.partType === "read_aloud" && (
+          {(task?.partType === "read_aloud" || task?.partType === "read_aloud_extended") && (
             <p style={{ fontSize: 11, color: "#64748b", marginTop: 8 }}>💡 Pause at commas · Stop at full stops · Don't rush</p>
           )}
+          {(task?.partType === "listen_answer_short" || task?.partType === "listen_answer_long") && (
+            <p style={{ fontSize: 11, color: "#64748b", marginTop: 8 }}>💡 Answer in full sentences · Give reasons where possible</p>
+          )}
         </div>
-
-        {/* Part 3 guiding points */}
-        {task?.partType === "long_turn_topic" && task.guidingPoints && (
-          <div style={{ background: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: 12, padding: 14, marginBottom: 12 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: "#1e40af", marginBottom: 8 }}>GUIDING POINTS — cover all three</p>
-            {task.guidingPoints.map((pt, i) => (
-              <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
-                <span style={{ width: 20, height: 20, borderRadius: "50%", background: "#1e40af", color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</span>
-                <p style={{ fontSize: 13, color: "#1e3a8a", lineHeight: 1.5 }}>{pt}</p>
-              </div>
-            ))}
-          </div>
         )}
 
         <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: 16 }}>

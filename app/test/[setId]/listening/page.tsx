@@ -147,7 +147,23 @@ export default function ListeningPage({ params }: { params: Promise<{ setId: str
   const handleSubmit = async () => {
     clearInterval(timerRef.current);
     let score = 0;
-    questions.forEach((q) => { if (answers[q.id] === q.answer) score += q.points; });
+    questions.forEach((q) => {
+      if (q.type === "ordering" && q.correctOrder) {
+        // Score 1 point per item in the correct position
+        try {
+          const userOrder: string[] = JSON.parse(answers[q.id] ?? "[]");
+          let correct = 0;
+          q.correctOrder.forEach((item, i) => { if (userOrder[i] === item) correct++; });
+          score += correct;
+        } catch { /* ignore */ }
+      } else if (q.type === "fill") {
+        const userAns = (answers[q.id] ?? "").trim().toLowerCase();
+        const correctAns = (q.answer ?? "").trim().toLowerCase();
+        if (userAns === correctAns) score += q.points;
+      } else {
+        if (answers[q.id] === q.answer) score += q.points;
+      }
+    });
     const total = questions.reduce((s, q) => s + q.points, 0);
     const grade = calculateGrade(score, total);
     setResult(grade);
@@ -252,27 +268,105 @@ export default function ListeningPage({ params }: { params: Promise<{ setId: str
             <p style={{ fontSize: 15, fontWeight: 600, color: "#1e293b", lineHeight: 1.6, marginBottom: 14 }}>
               Q{group.firstQIdx + qi + 1}. {q.question}
             </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {q.options?.map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => setAnswers((a) => ({ ...a, [q.id]: opt }))}
+
+            {/* MCQ */}
+            {q.type === "mcq" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {q.options?.map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => setAnswers((a) => ({ ...a, [q.id]: opt }))}
+                    style={{
+                      background: answers[q.id] === opt ? "#fef3c7" : "#f8fafc",
+                      border: `2px solid ${answers[q.id] === opt ? "#f59e0b" : "#e2e8f0"}`,
+                      borderRadius: 12, padding: "13px 16px", fontSize: 14,
+                      color: answers[q.id] === opt ? "#92400e" : "#374151",
+                      fontWeight: answers[q.id] === opt ? 600 : 400,
+                      cursor: "pointer", textAlign: "left",
+                    }}
+                  >{opt}</button>
+                ))}
+              </div>
+            )}
+
+            {/* Gap-fill */}
+            {q.type === "fill" && (
+              <div>
+                <p style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>Type the missing word exactly as you hear it.</p>
+                <input
+                  type="text"
+                  value={answers[q.id] ?? ""}
+                  onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                  placeholder="Type your answer here…"
                   style={{
-                    background: answers[q.id] === opt ? "#fef3c7" : "#f8fafc",
-                    border: `2px solid ${answers[q.id] === opt ? "#f59e0b" : "#e2e8f0"}`,
-                    borderRadius: 12,
-                    padding: "13px 16px",
-                    fontSize: 14,
-                    color: answers[q.id] === opt ? "#92400e" : "#374151",
-                    fontWeight: answers[q.id] === opt ? 600 : 400,
-                    cursor: "pointer",
-                    textAlign: "left",
+                    width: "100%", padding: "13px 14px", fontSize: 15, color: "#1e293b",
+                    border: `2px solid ${answers[q.id] ? "#f59e0b" : "#e2e8f0"}`,
+                    borderRadius: 12, outline: "none", background: answers[q.id] ? "#fef3c7" : "#f8fafc",
+                    fontFamily: "inherit", boxSizing: "border-box",
                   }}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
+                />
+              </div>
+            )}
+
+            {/* Ordering */}
+            {q.type === "ordering" && q.items && (() => {
+              let userOrder: string[] = [];
+              try { userOrder = JSON.parse(answers[q.id] ?? "[]"); } catch { userOrder = []; }
+              const setOrder = (newOrder: string[]) =>
+                setAnswers((a) => ({ ...a, [q.id]: JSON.stringify(newOrder) }));
+              const handleTap = (item: string) => {
+                if (userOrder.includes(item)) {
+                  setOrder(userOrder.filter((i) => i !== item));
+                } else if (userOrder.length < (q.items?.length ?? 5)) {
+                  setOrder([...userOrder, item]);
+                }
+              };
+              return (
+                <div>
+                  <p style={{ fontSize: 12, color: "#64748b", marginBottom: 10 }}>
+                    Tap items in the order you hear them (1st → 5th). Tap again to remove.
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {q.items.map((item) => {
+                      const pos = userOrder.indexOf(item);
+                      const selected = pos !== -1;
+                      return (
+                        <button
+                          key={item}
+                          onClick={() => handleTap(item)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 10,
+                            background: selected ? "#fef3c7" : "#f8fafc",
+                            border: `2px solid ${selected ? "#f59e0b" : "#e2e8f0"}`,
+                            borderRadius: 12, padding: "11px 14px", fontSize: 14,
+                            color: selected ? "#92400e" : "#374151",
+                            fontWeight: selected ? 600 : 400,
+                            cursor: "pointer", textAlign: "left",
+                          }}
+                        >
+                          <span style={{
+                            width: 24, height: 24, borderRadius: "50%", flexShrink: 0,
+                            background: selected ? "#f59e0b" : "#e2e8f0",
+                            color: selected ? "#fff" : "#94a3b8",
+                            fontSize: 12, fontWeight: 800,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                          }}>{selected ? pos + 1 : "·"}</span>
+                          {item}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {userOrder.length > 0 && (
+                    <button
+                      onClick={() => setOrder([])}
+                      style={{ marginTop: 10, fontSize: 12, color: "#dc2626", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                    >
+                      ✕ Clear order
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         ))}
       </div>

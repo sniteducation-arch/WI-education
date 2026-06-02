@@ -38,16 +38,16 @@ TEACHER TIP:
 function getPartGuidance(partType: string): string {
   switch (partType) {
     case "read_aloud":
-      return "EVALUATION FOCUS — READ ALOUD: Score Fluency on pacing and pausing at punctuation. Score Pronunciation on accuracy of each word. Grammar is NOT assessed in read-aloud — write exactly 'N/A' in the Grammar field. Vocabulary is NOT assessed in read-aloud (the words are given) — write exactly 'N/A' in the Vocabulary field. Score Task Completion on whether they read all sentences without skipping. Penalise heavily for skipped words, mispronounced medical terms, or rushing through punctuation.";
-    case "long_turn_topic":
-      return "EVALUATION FOCUS — LONG TURN (TOPIC): Score Task Completion on whether all 3 guiding points were addressed. Score Fluency on ability to speak continuously for about 1 minute without excessive pausing. Penalise for covering fewer than 2 guiding points.";
-    case "long_turn_graphic":
-      return "EVALUATION FOCUS — LONG TURN (GRAPHIC): The student was shown a chart/diagram. Score Task Completion on whether they described the main data, compared categories, and stated a conclusion. Score Vocabulary on use of data language (e.g. 'the largest proportion', 'compared to', 'overall'). Penalise for not mentioning specific figures or failing to draw a conclusion.";
-    case "communication":
-      return "EVALUATION FOCUS — COMMUNICATION ACTIVITY: The student answered 3 rapid questions. Score Task Completion on whether all 3 questions were answered. Score Fluency on speed and naturalness of responses. Reward relevant, specific answers. Penalise for answering only 1–2 questions or very vague responses.";
-    case "interview":
+    case "read_aloud_extended":
+      return "EVALUATION FOCUS — READ ALOUD: Score Fluency on pacing and pausing at punctuation (comma = brief pause, full stop = full stop). Score Pronunciation on accuracy of each word and clarity. Grammar is NOT assessed in read-aloud — write exactly 'N/A' in the Grammar field. Vocabulary is NOT assessed in read-aloud (the words are given) — write exactly 'N/A' in the Vocabulary field. Score Task Completion on whether they read all sentences completely without skipping or substituting words. Penalise heavily for skipped words, mispronounced medical terms, or rushing through punctuation.";
+    case "listen_answer_short":
+      return "EVALUATION FOCUS — LISTEN & ANSWER (SHORT): The student had 10 seconds to answer each short question. Score Task Completion on whether the question was answered directly. Score Fluency on confidence and speed of response. Reward full-sentence answers. Penalise heavily for one-word answers, silence, or answers that do not address the question.";
+    case "listen_answer_long":
+      return "EVALUATION FOCUS — LISTEN & ANSWER (LONGER): The student had 20 seconds to answer each question. Score Task Completion on whether the question is fully answered with detail. Score Fluency on naturalness and continuity. Reward answers that include a reason or example. Penalise for very brief one-sentence answers when more detail was possible.";
+    case "leave_message":
+      return "EVALUATION FOCUS — LEAVE A MESSAGE: The student read notes and left a voicemail of at least 1 minute. Score Task Completion on whether ALL note points were covered in the message. Score Fluency on smooth, connected speech for the full duration. Score Grammar on correct sentence structure throughout the message. Score Vocabulary on appropriate register (polite, professional). Penalise for missing note points, very short messages under 45 seconds, or very informal register.";
     default:
-      return "EVALUATION FOCUS — INTERVIEW: Score all criteria normally. Reward natural, personal, detailed answers. Penalise for one-word answers or not answering all questions asked.";
+      return "EVALUATION FOCUS — SPEAKING: Score all criteria normally. Reward natural, personal, detailed answers. Penalise for one-word answers or not answering the question asked.";
   }
 }
 
