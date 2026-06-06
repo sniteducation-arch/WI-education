@@ -29,10 +29,22 @@ export async function POST(req: NextRequest) {
         name: name || "Unknown",
         email,
         note: note || "",
-        amount: 500,
+        amount: 499,
         status: "pending",
         submittedAt: admin.firestore.FieldValue.serverTimestamp(),
       }, { merge: true });
+
+      // Create admin notification so it appears in the Notifications tab
+      await db.collection("admin_notifications").add({
+        type: "payment_request",
+        uid,
+        name: name || "Unknown",
+        email,
+        readableId: readableId || uid.slice(0, 8),
+        amount: 499,
+        read: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
 
       return NextResponse.json({ success: true, method: "admin" });
     } catch {

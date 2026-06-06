@@ -24,15 +24,19 @@ function getFingerprint(): string {
   return Math.abs(h).toString(36);
 }
 
-// ── Session ID (per browser tab / login) ─────────────────────────────────────
+// ── Session ID — localStorage so it survives app restarts / TWA background kills
 function getSessionId(): string {
-  if (typeof sessionStorage === "undefined") return ""; // SSR guard
-  let id = sessionStorage.getItem("_sid");
-  if (!id) {
-    id = Math.random().toString(36).slice(2) + Date.now().toString(36);
-    sessionStorage.setItem("_sid", id);
+  if (typeof window === "undefined") return ""; // SSR guard
+  try {
+    let id = localStorage.getItem("_sid");
+    if (!id) {
+      id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem("_sid", id);
+    }
+    return id;
+  } catch {
+    return Math.random().toString(36).slice(2);
   }
-  return id;
 }
 
 const WHATSAPP_NUMBER = "9779800000000"; // ← replace with your WhatsApp number
@@ -117,26 +121,42 @@ export default function DeviceGuard({ children }: { children: ReactNode }) {
         }
 
         // ── Session listener (concurrent login detection) ────────────────────
-        // Skip the very first snapshot — it fires immediately with the current
-        // state, which may still have the previous session's ID before the
-        // check-device API write propagates. Only act on CHANGES after setup.
+        // Skip the first snapshot — fires immediately before our write propagates.
+        // Use a 5-second grace window before acting on session changes so that
+        // a TWA restart or brief background kill doesn't falsely log the user out.
         let initialSnapshotDone = false;
+        let logoutTimer: ReturnType<typeof setTimeout> | null = null;
+
         unsubRef.current = onSnapshot(doc(db, "users", user.uid), (snap) => {
           if (!initialSnapshotDone) { initialSnapshotDone = true; return; }
           const d = snap.data();
           if (!d) return;
 
-          // Another device logged in → kick this session out
-          if (d.activeSessionId && d.activeSessionId !== sid) {
-            signOut(auth);
-            toast.error("Your account was signed in on another device. You have been logged out.", { duration: 6000 });
-            router.push("/");
-          }
-
-          // Admin banned them mid-session
+          // Admin banned mid-session — act immediately
           if (d.banned === true) {
             setBanReason(d.banReason ?? "Your account has been suspended.");
             setBanned(true);
+            return;
+          }
+
+          // Another session detected — wait 5 seconds before logging out.
+          // If the same session ID reappears (e.g. TWA restart re-registered),
+          // cancel the pending logout.
+          if (d.activeSessionId && d.activeSessionId !== sid) {
+            if (logoutTimer) return; // already counting down
+            logoutTimer = setTimeout(() => {
+              // Re-read current snapshot value before acting
+              const currentSid = d.activeSessionId;
+              if (currentSid && currentSid !== sid) {
+                signOut(auth);
+                toast.error("Your account was signed in on another device. You have been logged out.", { duration: 6000 });
+                router.push("/");
+              }
+              logoutTimer = null;
+            }, 5000);
+          } else {
+            // Session IDs match again — cancel any pending logout
+            if (logoutTimer) { clearTimeout(logoutTimer); logoutTimer = null; }
           }
         });
       } catch {

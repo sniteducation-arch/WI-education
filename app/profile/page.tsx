@@ -76,7 +76,7 @@ export default function ProfilePage() {
             { icon: "person", label: "Full Name", value: name },
             { icon: "mail", label: "Email Address", value: email },
             { icon: "phone", label: "Mobile Number", value: phone || "Not provided" },
-            { icon: "school", label: "Course", value: "MoralEdu Care Upskill Prep" },
+            { icon: "school", label: "Course", value: "Upskill Preparation for Students" },
           ].map((item) => (
             <div key={item.label} style={{ background: "#fff", borderRadius: 12, border: "1px solid #c6c5d2", padding: "14px 16px", display: "flex", alignItems: "center", gap: 14 }}>
               <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#dde1ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>

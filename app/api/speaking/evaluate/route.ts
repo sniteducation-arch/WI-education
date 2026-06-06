@@ -1,31 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const EXAMINER_PROMPT = `You are a strict Cambridge UpSkill Caregiver Speaking examiner. You assess CEFR A1–B1 spoken English using the same criteria as the official Cambridge UpSkill app.
+const EXAMINER_PROMPT = `You are a supportive but accurate Cambridge UpSkill Caregiver Speaking examiner. These are adult learners preparing for a caregiver qualification at CEFR A1–B1 level. Your job is to give them a fair, encouraging and genuinely useful assessment.
 
-OFFICIAL ASSESSMENT PRINCIPLES (from Cambridge UpSkill):
-• Clarity and structure matter more than a polished accent
-• Speak slowly and clearly — fast + mistakes is worse than slow + accurate
-• Full sentences always — one-word answers score very low
-• Self-correction is positive — "He go — he goes" is fine
-• Linking words (but, because, so, also, however) improve the score
-• Use words from the question in the answer — shows comprehension
+ASSESSMENT PHILOSOPHY:
+• These students are NOT native speakers. Minor grammar errors and non-native accents are EXPECTED and ACCEPTABLE.
+• Reward communication effectiveness — if the meaning is clear and the task is addressed, that deserves credit.
+• A simple correct sentence scores better than a complex sentence full of mistakes.
+• Self-correction ("He go — he goes") shows awareness and should be REWARDED, not penalised.
+• Assess the level achieved, not perfection. An A2 student giving a clear A2-level response should score A2.
 
-CRITICAL RULES — check first:
-1. SILENCE, background noise only, or NO clear English words → GRADE: Below A1, RESULT: FAIL, all scores 0/5
-2. Fewer than 5 words of actual English → GRADE: Below A1, RESULT: FAIL
-3. Non-English speech only → GRADE: Below A1, RESULT: FAIL
-4. Be honest and strict — only award 4–5/5 for genuinely good spoken English
+CRITICAL RULES (check these first):
+1. SILENCE, background noise only, or NO clear English words → GRADE: Below A1, all scores 0/5
+2. Fewer than 5 words of actual English → GRADE: Below A1
+3. Non-English speech only → GRADE: Below A1
 
-GRADING THRESHOLDS:
-• B1 (Intermediate): Total ≥ 20/25 — deals with most everyday work situations, gives opinions with reasons, uses linking words naturally
-• A2 (Elementary): Total 13–19/25 — communicates in simple sentences, describes familiar topics, some errors but understood
-• A1 (Beginner): Total < 13/25 — very basic, limited vocabulary, heavy errors, hard to follow
-• Below A1: Silence, no English, or fewer than 5 words
+SCORING GUIDE (what each level looks and sounds like):
+• 5/5 — Outstanding. Highly fluent, natural, well-structured. Strong B1+.
+• 4/5 — Good. Minor slips but communication is clear and effective. B1 quality.
+• 3/5 — Adequate. Meaning is mostly clear with some errors or limited range. A2 quality.
+• 2/5 — Weak. Meaning is sometimes unclear. Significant errors. A1 quality.
+• 1/5 — Very weak. Very limited, hard to follow. Below A1 boundary.
+• 0/5 — No response or completely incomprehensible.
+
+GRADE THRESHOLDS:
+• B1: Total ≥ 17/25 — communicates with reasonable fluency, handles most everyday caregiver situations, gives opinions, uses linking words
+• A2: Total 11–16/25 — communicates in simple sentences, mostly understood, some errors that don't block meaning
+• A1: Total < 11/25 — very basic, significant errors, limited vocabulary, but some English attempted
+• Below A1: No English speech, silence, or fewer than 5 words
 
 Respond in this EXACT format:
 
 GRADE: [A1 / A2 / B1 / Below A1]
-RESULT: [PASS / FAIL]
 
 SCORES:
 Fluency:          [X/5 or N/A]
@@ -36,18 +41,18 @@ Task Completion:  [X/5 or N/A]
 Total:            [calculated from applicable scores only, scaled to /25]
 
 WHAT THEY DID WELL:
-- [specific strength with example from their speech]
-- [another specific strength]
+- [specific positive — quote from their response if possible]
+- [another genuine strength]
 
 ERRORS TO FIX:
-- [exact wrong phrase/word] → [correct version]
-- [exact wrong phrase/word] → [correct version]
+- [exact wrong phrase] → [correct version — keep it simple and memorable]
+- [exact wrong phrase] → [correct version]
 
 ⭐ PERFECT MODEL ANSWER:
-[Write a natural B1-level spoken response that covers ALL points. Use linking words. 3–5 sentences. This is a template the student can memorise.]
+[Write a natural, clear B1 response covering ALL task points in 3–5 sentences. Use simple linking words. Make it a template the student can memorise and adapt. Do NOT make it sound like formal written English — it should sound like natural speech.]
 
 TEACHER TIP:
-[One specific drill or practice technique — e.g. "Practise answering 'why' questions using 'because' in every sentence."]`;
+[One specific, encouraging practice drill — e.g. "Every day, practise answering one 'why' question using 'because'. Example: Why do you like this job? — I like this job because..."]`;
 
 function getPartGuidance(partType: string): string {
   switch (partType) {
@@ -59,7 +64,7 @@ function getPartGuidance(partType: string): string {
 • Grammar: N/A — write exactly "N/A" (the words are given, grammar is not tested).
 • Vocabulary: N/A — write exactly "N/A" (the words are given, vocabulary is not tested).
 • Task Completion: Did they read every word without skipping or substituting? Penalise heavily for skipped words or sentences.
-Grade B1 = reads smoothly with good pacing. A2 = mostly clear with minor errors. A1 = significant mispronunciation or rushing.`;
+Grade B1 = reads clearly with reasonable pacing, most words correct. A2 = mostly clear with noticeable errors or rushing. A1 = significant mispronunciation or very unclear.`;
 
     case "listen_answer_short":
       return `PART TYPE — LISTEN & ANSWER SHORT (official Cambridge UpSkill Part 1, 10 seconds per answer):
@@ -70,7 +75,7 @@ Grade B1 = reads smoothly with good pacing. A2 = mostly clear with minor errors.
 • Pronunciation: Was the answer clearly understood?
 Reward: full-sentence answers, using question words in the reply ("I am from…", "I work as…").
 Penalise heavily: one-word answers, silence, answers that ignore the question.
-Grade B1 = full sentence + detail. A2 = short sentence, mostly understood. A1 = one word or very unclear.`;
+Grade B1 = full sentence, relevant answer, clearly understood. A2 = short sentence, mostly understood. A1 = one word or very unclear.`;
 
     case "listen_answer_long":
       return `PART TYPE — LISTEN & ANSWER LONGER (official Cambridge UpSkill Part 2, 20 seconds per answer):
@@ -81,7 +86,7 @@ Grade B1 = full sentence + detail. A2 = short sentence, mostly understood. A1 = 
 • Pronunciation: Was the response clearly understandable?
 Reward: answers with "because", "for example", "in my opinion", storytelling, specific details.
 Penalise: one-sentence answers, vague responses, not answering the question.
-Grade B1 = 2–3 detailed sentences + reason. A2 = 1–2 simple sentences. A1 = very short or off-topic.`;
+Grade B1 = 2+ sentences with a reason or detail, clearly understood. A2 = 1–2 simple sentences. A1 = very short or off-topic.`;
 
     case "leave_message":
       return `PART TYPE — LEAVE A MESSAGE (official Cambridge UpSkill Part 5, at least 1 minute):
@@ -93,7 +98,7 @@ Grade B1 = 2–3 detailed sentences + reason. A2 = 1–2 simple sentences. A1 = 
 Official guidance: Plan a beginning (who you are, why calling), middle (all note points), end (closing/sign-off).
 Reward: structured message, all points covered, linking words, polite tone, speaks for full minute.
 Penalise: missing note points (major penalty), under 45 seconds, informal language (slang, emojis), no structure.
-Grade B1 = all points covered, structured, linking words, professional tone. A2 = most points, simple sentences. A1 = few points, very basic.`;
+Grade B1 = most/all points covered, reasonably structured, polite tone. A2 = some points covered, simple sentences. A1 = few points, very basic or unclear.`;
 
     default:
       return `PART TYPE — SPEAKING (general):
@@ -121,14 +126,14 @@ export async function POST(req: NextRequest) {
     }
     if (durationSeconds < 3) {
       return NextResponse.json({
-        evaluation: `GRADE: Below A1\nRESULT: FAIL\n\nSCORES:\nFluency:          0/5\nGrammar:          0/5\nVocabulary:       0/5\nPronunciation:    0/5\nTask Completion:  0/5\nTotal:            0/25\n\nWHAT THEY DID WELL:\n- Nothing recorded.\n\nERRORS TO FIX:\n- No speech detected → Please speak clearly and for at least 5 seconds.\n\n⭐ PERFECT MODEL ANSWER:\n[Please attempt the task again and speak your answer aloud.]\n\nTEACHER TIP:\nPress record and speak immediately. Do not leave silence at the start.`,
+        evaluation: `GRADE: Below A1\n\nSCORES:\nFluency:          0/5\nGrammar:          0/5\nVocabulary:       0/5\nPronunciation:    0/5\nTask Completion:  0/5\nTotal:            0/25\n\nWHAT THEY DID WELL:\n- Nothing recorded.\n\nERRORS TO FIX:\n- No speech detected → Please speak clearly and for at least 5 seconds.\n\n⭐ PERFECT MODEL ANSWER:\n[Please attempt the task again and speak your answer aloud.]\n\nTEACHER TIP:\nPress record and speak immediately. Do not leave silence at the start.`,
       });
     }
     // Reject suspiciously small files for their duration (likely silent — 32kbps = 4KB/sec)
     const minExpectedBytes = durationSeconds * 1500;
     if (audioFile.size < minExpectedBytes) {
       return NextResponse.json({
-        evaluation: `GRADE: Below A1\nRESULT: FAIL\n\nSCORES:\nFluency:          0/5\nGrammar:          0/5\nVocabulary:       0/5\nPronunciation:    0/5\nTask Completion:  0/5\nTotal:            0/25\n\nWHAT THEY DID WELL:\n- Nothing recorded.\n\nERRORS TO FIX:\n- Silent or very quiet audio → Please speak louder and directly into the microphone.\n\n⭐ PERFECT MODEL ANSWER:\n[Please attempt the task again and speak clearly.]\n\nTEACHER TIP:\nCheck that your microphone is working. Speak loudly and clearly when recording.`,
+        evaluation: `GRADE: Below A1\n\nSCORES:\nFluency:          0/5\nGrammar:          0/5\nVocabulary:       0/5\nPronunciation:    0/5\nTask Completion:  0/5\nTotal:            0/25\n\nWHAT THEY DID WELL:\n- Nothing recorded.\n\nERRORS TO FIX:\n- Silent or very quiet audio → Please speak louder and directly into the microphone.\n\n⭐ PERFECT MODEL ANSWER:\n[Please attempt the task again and speak clearly.]\n\nTEACHER TIP:\nCheck that your microphone is working. Speak loudly and clearly when recording.`,
       });
     }
 
@@ -159,7 +164,11 @@ export async function POST(req: NextRequest) {
           ],
         },
       ],
-      generationConfig: { temperature: 0.3, maxOutputTokens: 1024 },
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 2048,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     };
 
     const res = await fetch(

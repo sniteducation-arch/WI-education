@@ -129,20 +129,32 @@ export default function ListeningPage({ params }: { params: Promise<{ setId: str
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState<ReturnType<typeof calculateGrade> | null>(null);
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const uidRef = useRef("");
+  const handleSubmitRef = useRef<() => void>(() => {});
+  const autoSubmittedRef = useRef(false);
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) { router.push("/"); return; }
     setUid(user.uid);
+    uidRef.current = user.uid;
   }, [authLoading, user, router]);
 
   useEffect(() => {
     if (submitted) return;
     timerRef.current = setInterval(() => {
-      setTimeLeft((t) => { if (t <= 1) { handleSubmit(); return 0; } return t - 1; });
+      setTimeLeft((t) => (t <= 1 ? 0 : t - 1));
     }, 1000);
     return () => clearInterval(timerRef.current);
   }, [submitted]);
+
+  useEffect(() => {
+    if (timeLeft === 0 && !autoSubmittedRef.current) {
+      autoSubmittedRef.current = true;
+      clearInterval(timerRef.current);
+      handleSubmitRef.current();
+    }
+  }, [timeLeft]);
 
   const handleSubmit = async () => {
     clearInterval(timerRef.current);
@@ -168,7 +180,8 @@ export default function ListeningPage({ params }: { params: Promise<{ setId: str
     const grade = calculateGrade(score, total);
     setResult(grade);
     setSubmitted(true);
-    if (uid) {
+    const currentUid = uidRef.current || uid;
+    if (currentUid) {
       try {
         const listeningQuestions = questions.map((q) => {
           const ans = answers[q.id];
@@ -188,7 +201,7 @@ export default function ListeningPage({ params }: { params: Promise<{ setId: str
           };
         });
 
-        const ref = doc(db, "users", uid);
+        const ref = doc(db, "users", currentUid);
         const snap = await getDoc(ref);
         const existing = snap.data()?.progress || {};
         await updateDoc(ref, {
@@ -205,6 +218,9 @@ export default function ListeningPage({ params }: { params: Promise<{ setId: str
       } catch { /* non-critical */ }
     }
   };
+
+  // Keep handleSubmitRef current so the auto-submit effect always calls the latest version
+  useEffect(() => { handleSubmitRef.current = handleSubmit; });
 
   const group = groups[currentGroup];
   const audioUrl = group ? listeningAudioUrls[group.questions[0].id] : undefined;

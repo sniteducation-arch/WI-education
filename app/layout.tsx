@@ -3,11 +3,21 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/components/AuthProvider";
 import DeviceGuard from "@/components/DeviceGuard";
+import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
+import SplashScreen from "@/components/SplashScreen";
 
 export const metadata: Metadata = {
-  title: "MoralEdu Care Upskill Prep",
-  description: "MoralEdu Care Upskill Prep – practice tool for caregiver students in Nepal.",
-  appleWebApp: { capable: true, statusBarStyle: "default", title: "MoralEdu Care" },
+  title: "Upskill Preparation for Students",
+  description: "Upskill Preparation for Students – practice tool for caregiver students in Nepal.",
+  manifest: "/manifest.json",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Upskill Prep" },
+  icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/icon-192.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -31,6 +41,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <SplashScreen />
+        <ServiceWorkerRegistrar />
         <AuthProvider>
           <DeviceGuard>
             <div

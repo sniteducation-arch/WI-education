@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.appmoraleducare.twa",
+        "sha256_cert_fingerprints": ["DA:7A:9D:CD:E2:FE:AD:54:64:71:43:B0:48:3E:CB:93:77:C2:A2:1B:0D:C5:AB:48:B5:A9:E1:24:01:CB:C2:1C"]
+      }
+    }]

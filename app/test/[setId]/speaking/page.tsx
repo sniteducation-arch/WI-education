@@ -5,16 +5,17 @@ import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/components/AuthProvider";
 import { testSets } from "@/lib/questions";
-import { ArrowLeft, Mic, MicOff, Clock, ChevronRight } from "lucide-react";
+import { ArrowLeft, Mic, MicOff, Clock, ChevronRight, Volume2 } from "lucide-react";
+import { speakingAudioUrls } from "@/lib/speaking-audio-urls";
 
-type PartStatus = "idle" | "recording" | "evaluating" | "done";
+type PartStatus = "idle" | "playing" | "recording" | "evaluating" | "done";
 
 const today = () => new Date().toDateString();
 
 // ── Evaluation parser ─────────────────────────────────────────────────────────
 function parseEval(text: string) {
   const grade = text.match(/GRADE:\s*(.+)/)?.[1]?.trim() ?? "—";
-  const result = text.match(/RESULT:\s*(.+)/)?.[1]?.trim() ?? "—";
+  const result = "—";
   const fluency = text.match(/Fluency:\s*(.+)/)?.[1]?.trim() ?? "—";
   const grammar = text.match(/Grammar:\s*(.+)/)?.[1]?.trim() ?? "—";
   const vocab = text.match(/Vocabulary:\s*(.+)/)?.[1]?.trim() ?? "—";
@@ -49,10 +50,10 @@ function fairTotal(e: ReturnType<typeof parseEval>): number {
   return Math.round((scores.reduce((s, n) => s + n, 0) / (scores.length * 5)) * 25);
 }
 
-// Grade based on score out of 25 — aligned with real exam (35/40 = B1)
+// Grade based on score out of 25
 function scoreToGrade(score: number): string {
-  if (score >= 20) return "B1";
-  if (score >= 13) return "A2";
+  if (score >= 17) return "B1";
+  if (score >= 11) return "A2";
   return "A1";
 }
 
@@ -173,6 +174,8 @@ export default function SpeakingPage({ params }: { params: Promise<{ setId: stri
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const prepTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const recordingSecondsRef = useRef(0);
+  const questionAudioRef = useRef<HTMLAudioElement | null>(null);
+  const stopRecordingRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     if (authLoading) return;
@@ -216,12 +219,40 @@ export default function SpeakingPage({ params }: { params: Promise<{ setId: stri
     return () => clearInterval(prepTimerRef.current);
   }, [current]);
 
+  // ── Play the narrated question for Parts 1 & 2 ───────────────────────────────
+  const playQuestion = useCallback((setNum: number, partNum: number, qIdx: number) => {
+    if (questionAudioRef.current) {
+      questionAudioRef.current.pause();
+      questionAudioRef.current = null;
+    }
+    const key = `s${setNum}p${partNum}q${qIdx + 1}`;
+    const src = speakingAudioUrls[key];
+    if (!src) { setStatus("idle"); return; }
+    setStatus("playing");
+    const audio = new Audio(src);
+    questionAudioRef.current = audio;
+    audio.onended = () => setStatus("idle");
+    audio.onerror = () => setStatus("idle");
+    audio.play().catch(() => setStatus("idle"));
+  }, []);
+
+  // Auto-play question audio when entering a listen_answer sub-question
+  useEffect(() => {
+    if (isPreparing) return;
+    const t = tasks[current];
+    if (!t) return;
+    if (t.partType !== "listen_answer_short" && t.partType !== "listen_answer_long") return;
+    playQuestion(setNum, t.part, subIdx);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPreparing, subIdx, current]);
+
   // Derived values for current sub-question
   const task = tasks[current];
   const subPrompts = task?.subPrompts;
   const totalSubs = subPrompts?.length ?? 1;
   const timePerSub = Math.floor((task?.timeSeconds ?? 120) / totalSubs);
   const currentPrompt = subPrompts ? subPrompts[subIdx] : task?.prompt;
+  const isListenPart = task?.partType === "listen_answer_short" || task?.partType === "listen_answer_long";
 
   const mm = String(Math.floor(recordingTime / 60)).padStart(2, "0");
   const ss = String(recordingTime % 60).padStart(2, "0");
@@ -245,21 +276,26 @@ export default function SpeakingPage({ params }: { params: Promise<{ setId: stri
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
 
+      mediaRecorder.onerror = () => {
+        clearInterval(timerRef.current);
+        mediaRecorder.stream.getTracks().forEach((t) => t.stop());
+        setStatus("idle");
+        setMicError("Recording was interrupted. Please try again.");
+      };
+
       mediaRecorder.start(250);
       setStatus("recording");
       setRecordingTime(0);
       recordingSecondsRef.current = 0;
 
       timerRef.current = setInterval(() => {
-        setRecordingTime((t) => {
-          const next = t + 1;
-          recordingSecondsRef.current = next;
-          if (next >= timePerSub) {
-            stopRecording();
-            return next;
-          }
-          return next;
-        });
+        const next = recordingSecondsRef.current + 1;
+        recordingSecondsRef.current = next;
+        setRecordingTime(next);
+        if (next >= timePerSub) {
+          clearInterval(timerRef.current);
+          stopRecordingRef.current();
+        }
       }, 1000);
     } catch {
       setMicError("Microphone access denied. Please allow microphone access and try again.");
@@ -321,6 +357,22 @@ export default function SpeakingPage({ params }: { params: Promise<{ setId: stri
     mediaRecorder.stop();
   }, [current, subIdx, totalSubs, subEvals, task, currentPrompt]);
 
+  // Keep ref current so timers and event listeners always call the latest stopRecording
+  useEffect(() => { stopRecordingRef.current = stopRecording; }, [stopRecording]);
+
+  // Detect audio device changes (e.g. earphone plugged in) mid-recording
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices) return;
+    const onDeviceChange = () => {
+      if (mediaRecorderRef.current?.state === "recording") {
+        stopRecordingRef.current();
+        setMicError("Audio device changed. Recording stopped — please re-record.");
+      }
+    };
+    navigator.mediaDevices.addEventListener("devicechange", onDeviceChange);
+    return () => navigator.mediaDevices.removeEventListener("devicechange", onDeviceChange);
+  }, []);
+
   const handleNextPart = () => {
     setCurrent((c) => c + 1);
   };
@@ -332,8 +384,8 @@ export default function SpeakingPage({ params }: { params: Promise<{ setId: stri
         const gradeToNum: Record<string, number> = { B1: 3, A2: 2, A1: 1, "Below A1": 0 };
         const allGrades = allPartSubEvals.flat().filter(Boolean).map((r) => evalGrade(parseEval(r!)));
         const avg = allGrades.length ? allGrades.reduce((s, g) => s + (gradeToNum[g] ?? 1), 0) / allGrades.length : 1;
-        const overallGrade = avg >= 2.5 ? "B1" : avg >= 1.5 ? "A2" : "A1";
-        const percentage = avg >= 2.5 ? 85 : avg >= 1.5 ? 65 : 45;
+        const overallGrade = avg >= 2.0 ? "B1" : avg >= 1.2 ? "A2" : "A1";
+        const percentage = avg >= 2.0 ? 85 : avg >= 1.2 ? 65 : 45;
 
         const speakingParts = tasks.map((t, i) => {
           const subEvalsForPart = allPartSubEvals[i] ?? [];
@@ -423,7 +475,7 @@ export default function SpeakingPage({ params }: { params: Promise<{ setId: stri
     const gradeToNum: Record<string, number> = { B1: 3, A2: 2, A1: 1, "Below A1": 0 };
     const allGrades = allPartSubEvals.flat().filter(Boolean).map((r) => evalGrade(parseEval(r!)));
     const avg = allGrades.length ? allGrades.reduce((s, g) => s + (gradeToNum[g] ?? 1), 0) / allGrades.length : 0;
-    const overallGrade = avg >= 2.5 ? "B1" : avg >= 1.5 ? "A2" : "A1";
+    const overallGrade = avg >= 2.0 ? "B1" : avg >= 1.2 ? "A2" : "A1";
     const overallColor = gradeColor(overallGrade);
     const totalParts = tasks.length;
     const completedParts = allPartSubEvals.filter((p) => p.some(Boolean)).length;
@@ -663,8 +715,26 @@ export default function SpeakingPage({ params }: { params: Promise<{ setId: stri
         )}
 
         {/* Recording UI */}
+        {status === "playing" && (
+          <div style={{ textAlign: "center", padding: "8px 0" }}>
+            <div style={{ width: 100, height: 100, borderRadius: "50%", background: "#eff6ff", border: "3px solid #3b82f6", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", animation: "pulse 1.2s ease-in-out infinite" }}>
+              <Volume2 size={32} color="#2563eb" />
+            </div>
+            <p style={{ fontSize: 15, fontWeight: 700, color: "#1e40af" }}>🔊 Question playing…</p>
+            <p style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>Listen carefully, then get ready to answer</p>
+          </div>
+        )}
+
         {status === "idle" && (
           <div style={{ textAlign: "center" }}>
+            {isListenPart && (
+              <button
+                onClick={() => playQuestion(setNum, task!.part, subIdx)}
+                style={{ background: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: 10, padding: "8px 20px", color: "#1e40af", fontSize: 13, fontWeight: 600, cursor: "pointer", marginBottom: 20, display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                <Volume2 size={14} /> Play Again
+              </button>
+            )}
             <div
               onClick={startRecording}
               style={{ width: 120, height: 120, borderRadius: "50%", background: "#f0fdf4", border: "4px solid #16a34a", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", cursor: "pointer" }}
@@ -714,6 +784,7 @@ export default function SpeakingPage({ params }: { params: Promise<{ setId: stri
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
         @keyframes spin { to{transform:rotate(360deg)} }
+        @keyframes audioPulse { 0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0.4)} 50%{box-shadow:0 0 0 12px rgba(59,130,246,0)} }
       `}</style>
     </div>
   );

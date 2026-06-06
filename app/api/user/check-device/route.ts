@@ -40,8 +40,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (stored === fingerprint) {
-      // Same device — update session ID (kicks out any other concurrent session)
-      await ref.update({ activeSessionId: sessionId });
+      // Same device — update activeSessionId to current session so TWA restarts
+      // re-register cleanly without triggering the other-device logout listener.
+      if (data.activeSessionId !== sessionId) {
+        await ref.update({ activeSessionId: sessionId });
+      }
       return NextResponse.json({ status: "ok" });
     }
 

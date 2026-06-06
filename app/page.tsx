@@ -61,9 +61,9 @@ export default function AuthPage() {
       <header style={{ background: "#fff", borderBottom: "1px solid #c6c5d2", height: 64, display: "flex", alignItems: "center", padding: "0 20px", gap: 12, flexShrink: 0 }}>
         <div style={{ width: 40, height: 40, borderRadius: 10, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="MoralEdu Care" style={{ width: 40, height: 40, objectFit: "contain" }} />
+          <img src="/moral-logo.png" alt="Moral Educare" style={{ width: 40, height: 40, objectFit: "contain" }} />
         </div>
-        <h1 style={{ ...H, fontSize: 20, fontWeight: 700, color: "#0d2067" }}>MoralEdu Care Upskill Prep</h1>
+        <h1 style={{ ...H, fontSize: 20, fontWeight: 700, color: "#0d2067" }}>Upskill Preparation for Students</h1>
       </header>
 
       <div style={{ flex: 1, overflowY: "auto", padding: "28px 20px 40px" }}>
@@ -73,7 +73,7 @@ export default function AuthPage() {
             Elevate Your Credentials
           </h2>
           <p style={{ fontSize: 15, color: "#454651", lineHeight: 1.6 }}>
-            Prepare for the Cambridge UpSkill caregiver assessment with MoralEdu Care Upskill Prep.
+            Prepare for the Cambridge UpSkill caregiver assessment with Upskill Preparation for Students.
           </p>
         </div>
 

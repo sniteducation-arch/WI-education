@@ -1,14 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getIdToken } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/components/AuthProvider";
 import toast from "react-hot-toast";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
-import Link from "next/link";
 
 const H = "'Manrope', system-ui, sans-serif";
 
@@ -21,10 +19,7 @@ export default function PaymentPage() {
   const [agreed, setAgreed] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [paying, setPaying] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [note, setNote] = useState("");
-  const [method, setMethod] = useState<"qr" | "esewa">("qr");
   const [readableId, setReadableId] = useState("");
   const [alreadyPaid, setAlreadyPaid] = useState(false);
 
@@ -36,6 +31,7 @@ export default function PaymentPage() {
     setEmail(user.email || "");
     (async () => {
       try {
+        const { getIdToken } = await import("firebase/auth");
         const token = await getIdToken(user);
         const meRes = await fetch(`/api/user/me?token=${token}`);
         if (meRes.ok) {
@@ -62,28 +58,26 @@ export default function PaymentPage() {
     })();
   }, [authLoading, user, router]);
 
-  // ── QR payment submission ─────────────────────────────────
-  const handleQRSubmit = async () => {
+  const handleRequestAccess = async () => {
     if (!agreed) return toast.error("Please accept the Terms & Conditions.");
     setSubmitting(true);
     try {
       const res = await fetch("/api/qr-payment/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid, name, email, note, readableId }),
+        body: JSON.stringify({ uid, name, email, note: "", readableId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      // If Admin SDK isn't set up yet, write directly from client
       if (data.method === "client") {
         await setDoc(doc(db, "qr_requests", uid), {
           uid,
           readableId: readableId || uid.slice(0, 8),
           name: name || "Unknown",
           email,
-          note: note || "",
-          amount: 500,
+          note: "",
+          amount: 499,
           status: "pending",
           submittedAt: serverTimestamp(),
         }, { merge: true });
@@ -94,35 +88,6 @@ export default function PaymentPage() {
       toast.error((err as Error).message || "Submission failed. Please try again.");
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  // ── eSewa payment ─────────────────────────────────────────
-  const handleEsewa = async () => {
-    if (!agreed) return toast.error("Please accept the Terms & Conditions.");
-    setPaying(true);
-    try {
-      const res = await fetch("/api/esewa/initiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = data.gateway;
-      Object.entries(data.fields).forEach(([k, v]) => {
-        const i = document.createElement("input");
-        i.type = "hidden"; i.name = k; i.value = String(v);
-        form.appendChild(i);
-      });
-      document.body.appendChild(form);
-      form.submit();
-    } catch (err: unknown) {
-      toast.error((err as Error).message || "Could not connect to eSewa.");
-      setPaying(false);
     }
   };
 
@@ -170,10 +135,10 @@ export default function PaymentPage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
             <div>
               <span style={{ background: "#abf374", color: "#367000", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 9999, display: "inline-block", marginBottom: 8 }}>FULL ACCESS</span>
-              <h3 style={{ fontFamily: H, fontSize: 17, fontWeight: 700, color: "#0d2067" }}>MoralEdu Care Upskill Prep</h3>
+              <h3 style={{ fontFamily: H, fontSize: 17, fontWeight: 700, color: "#0d2067" }}>Upskill Preparation for Students</h3>
             </div>
             <div style={{ textAlign: "right" }}>
-              <p style={{ fontFamily: H, fontSize: 26, fontWeight: 800, color: "#0d2067", lineHeight: 1 }}>NPR 500</p>
+              <p style={{ fontFamily: H, fontSize: 26, fontWeight: 800, color: "#0d2067", lineHeight: 1 }}>NPR 499</p>
               <p style={{ fontSize: 11, color: "#454651", marginTop: 3 }}>One-time · No renewal</p>
             </div>
           </div>
@@ -187,173 +152,87 @@ export default function PaymentPage() {
           </div>
         </div>
 
-        {/* Method tabs */}
-        <div style={{ display: "flex", background: "#e1e3e4", borderRadius: 10, padding: 4, marginBottom: 16, gap: 4 }}>
-          {/* QR tab — active */}
-          <button
-            onClick={() => setMethod("qr")}
-            style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 700, fontSize: 13, transition: "all 0.15s", background: method === "qr" ? "#fff" : "transparent", color: method === "qr" ? "#0d2067" : "#767682", boxShadow: method === "qr" ? "0 1px 4px rgba(0,0,0,0.1)" : "none", fontFamily: "inherit" }}
-          >
-            📱 QR Code
-          </button>
+        {/* How it works */}
+        <div style={{ background: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: 14, padding: 16, marginBottom: 20 }}>
+          <p style={{ fontFamily: H, fontSize: 14, fontWeight: 700, color: "#1e40af", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>info</span>
+            How to get access
+          </p>
+          <ol style={{ paddingLeft: 18, display: "flex", flexDirection: "column", gap: 8, margin: 0 }}>
+            <li style={{ fontSize: 13, color: "#1e3a8a", lineHeight: 1.6 }}>Click <strong>Request Access</strong> below to notify our admin.</li>
+            <li style={{ fontSize: 13, color: "#1e3a8a", lineHeight: 1.6 }}>
+              Contact <strong>9851093948</strong> on WhatsApp to complete your payment of <strong>NPR 499</strong>.
+            </li>
+            <li style={{ fontSize: 13, color: "#1e3a8a", lineHeight: 1.6 }}>Wait for admin approval — usually within a few hours.</li>
+            <li style={{ fontSize: 13, color: "#1e3a8a", lineHeight: 1.6 }}>Your account will be unlocked automatically once approved.</li>
+          </ol>
+        </div>
 
-          {/* eSewa tab — coming soon, disabled */}
-          <div style={{ flex: 1, position: "relative" }}>
-            <button
-              disabled
-              style={{ width: "100%", padding: "10px 0", border: "none", borderRadius: 8, cursor: "not-allowed", fontWeight: 700, fontSize: 12, background: "transparent", color: "#b0b0b8", fontFamily: "inherit", opacity: 0.7 }}
-            >
-              💚 eSewa
-            </button>
-            <span style={{ position: "absolute", top: -6, right: 4, background: "#f59e0b", color: "#fff", fontSize: 9, fontWeight: 800, padding: "2px 6px", borderRadius: 9999, letterSpacing: "0.03em", pointerEvents: "none" }}>
-              SOON
-            </span>
+        {/* QR Code */}
+        <div style={{ background: "#fff", border: "1.5px solid #c6c5d2", borderRadius: 14, padding: 18, marginBottom: 20, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+          <p style={{ fontFamily: H, fontSize: 14, fontWeight: 700, color: "#0d2067", margin: 0 }}>Scan to Pay — NPR 499</p>
+          <img src="/qr2.png" alt="Payment QR Code" style={{ width: 200, height: 200, borderRadius: 10, objectFit: "contain" }} />
+          <p style={{ fontSize: 12, color: "#454651", margin: 0, textAlign: "center" }}>Scan this QR code with your banking app to send NPR 499</p>
+        </div>
+
+        {/* WhatsApp contact highlight */}
+        <div style={{ background: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: 14, padding: 16, marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#25D366", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+          </div>
+          <div>
+            <p style={{ fontFamily: H, fontSize: 15, fontWeight: 700, color: "#166534", marginBottom: 2 }}>Pay via WhatsApp</p>
+            <p style={{ fontSize: 13, color: "#166534", lineHeight: 1.5 }}>
+              Message <strong>9851093948</strong> on WhatsApp to pay NPR 499 and get approved.
+            </p>
           </div>
         </div>
 
-        {/* ── QR METHOD ── */}
-        {method === "qr" && (
-          <div>
-            {/* Important instructions */}
-            <div style={{ background: "#fff8e1", border: "1.5px solid #fde68a", borderRadius: 12, padding: 14, marginBottom: 16 }}>
-              <p style={{ fontFamily: H, fontSize: 14, fontWeight: 700, color: "#92400e", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>warning</span>
-                Before scanning — read carefully
-              </p>
-              <ol style={{ paddingLeft: 18, display: "flex", flexDirection: "column", gap: 6 }}>
-                {[
-                  "Scan the QR code below using your bank app or eSewa.",
-                  `Pay exactly NPR 500.`,
-                  <span key="uid">In the <strong>Remarks / Description</strong> field, type your User ID: <code style={{ background: "#fde68a", padding: "1px 6px", borderRadius: 4, fontSize: 12, wordBreak: "break-all" }}>{readableId}</code></span>,
-                  `Come back here and click "I Have Paid via QR".`,
-                  "Wait for admin approval (usually within a few hours).",
-                ].map((item, i) => (
-                  <li key={i} style={{ fontSize: 13, color: "#78350f", lineHeight: 1.6 }}>{item}</li>
-                ))}
-              </ol>
-            </div>
+        {/* Account sharing warning */}
+        <div style={{ background: "#fef2f2", border: "1.5px solid #fecaca", borderRadius: 12, padding: 14, marginBottom: 16 }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "#dc2626", marginBottom: 4 }}>⚠️ ONE ACCOUNT, ONE PERSON</p>
+          <p style={{ fontSize: 12, color: "#7f1d1d", lineHeight: 1.6 }}>
+            This account is registered to <strong>one person only</strong>. Sharing your account with others is automatically detected and will result in <strong>permanent deletion with no refund</strong>.
+          </p>
+        </div>
 
-            {/* QR Code */}
-            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #c6c5d2", padding: "20px 20px 16px", textAlign: "center", marginBottom: 16 }}>
-              <p style={{ fontFamily: H, fontSize: 15, fontWeight: 700, color: "#0d2067", marginBottom: 16 }}>
-                Scan to Pay — NPR 500
-              </p>
+        {/* Terms */}
+        <TermsBox agreed={agreed} setAgreed={setAgreed} showTerms={showTerms} setShowTerms={setShowTerms} />
 
-              {/* QR image — large, clean, centered */}
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/qr2.png"
-                  alt="Payment QR Code — scan to pay NPR 500"
-                  style={{
-                    width: 260,
-                    height: 260,
-                    objectFit: "contain",
-                    display: "block",
-                    background: "#fff",
-                  }}
-                />
-              </div>
-
-              <p style={{ fontSize: 12, color: "#454651", lineHeight: 1.6 }}>
-                Use <strong>eSewa, IME Pay, Khalti</strong> or any bank app to scan.
-              </p>
-            </div>
-
-            {/* UID reminder box */}
-            <div style={{ background: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: 12, padding: 14, marginBottom: 16 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: "#1e40af", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>badge</span>
-                Your unique User ID (copy into payment remarks)
-              </p>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <code style={{ flex: 1, background: "#fff", border: "1px solid #bfdbfe", borderRadius: 8, padding: "10px 12px", fontSize: 14, color: "#1e3a8a", fontWeight: 700, letterSpacing: "0.03em" }}>
-                  {readableId}
-                </code>
-                <button
-                  onClick={() => { navigator.clipboard.writeText(readableId); toast.success("User ID copied!"); }}
-                  style={{ background: "#1e40af", border: "none", borderRadius: 8, padding: "10px 12px", cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#fff" }}>content_copy</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Optional note */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#454651", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>
-                Transaction Note (optional)
-              </label>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="e.g. Paid via eSewa, transaction ref #12345..."
-                rows={2}
-                style={{ width: "100%", background: "#fff", border: "1px solid #c6c5d2", borderRadius: 10, padding: "12px 14px", fontSize: 14, color: "#191c1d", outline: "none", resize: "none", fontFamily: "inherit", boxSizing: "border-box" }}
-              />
-            </div>
-
-            {/* Account sharing warning */}
-            <div style={{ background: "#fef2f2", border: "1.5px solid #fecaca", borderRadius: 12, padding: 14, marginBottom: 14 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: "#dc2626", marginBottom: 4 }}>⚠️ ONE ACCOUNT, ONE PERSON</p>
-              <p style={{ fontSize: 12, color: "#7f1d1d", lineHeight: 1.6 }}>
-                This account is registered to <strong>one person only</strong>. Sharing your account with others is automatically detected and will result in <strong>permanent deletion with no refund</strong>.
-              </p>
-            </div>
-
-            {/* Terms */}
-            <TermsBox agreed={agreed} setAgreed={setAgreed} showTerms={showTerms} setShowTerms={setShowTerms} />
-
-            {/* Submit button */}
-            <button
-              onClick={handleQRSubmit}
-              disabled={submitting || !agreed}
-              style={{ width: "100%", background: submitting || !agreed ? "#e1e3e4" : "#0d2067", color: submitting || !agreed ? "#767682" : "#fff", border: "none", borderRadius: 14, padding: "16px 0", fontSize: 16, fontWeight: 700, cursor: submitting || !agreed ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontFamily: "inherit", boxShadow: !submitting && agreed ? "0 4px 14px rgba(13,32,103,0.25)" : "none", marginBottom: 12 }}>
-              {submitting ? (
-                <><span className="material-symbols-outlined" style={{ fontSize: 20, animation: "spin 1s linear infinite" }}>sync</span>Submitting…</>
-              ) : (
-                <><span className="material-symbols-outlined" style={{ fontSize: 20, fontVariationSettings: "'FILL' 1" }}>check_circle</span>I Have Paid via QR Code</>
-              )}
-            </button>
-            <p style={{ fontSize: 12, color: "#767682", textAlign: "center" }}>
-              Your request will be reviewed by an admin. Access is granted after approval.
-            </p>
-          </div>
-        )}
-
-        {/* ── ESEWA METHOD (kept for future) ── */}
-        {method === "esewa" && (
-          <div>
-            <div style={{ background: "#f0fdf4", border: "1.5px solid #bbf7d0", borderRadius: 12, padding: 14, marginBottom: 16 }}>
-              <p style={{ fontSize: 13, color: "#166534", lineHeight: 1.6 }}>
-                <strong>Instant activation</strong> — eSewa payments are verified automatically. Access is unlocked immediately after payment.
-              </p>
-            </div>
-
-            {/* Account sharing warning */}
-            <div style={{ background: "#fef2f2", border: "1.5px solid #fecaca", borderRadius: 12, padding: 14, marginBottom: 14 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: "#dc2626", marginBottom: 4 }}>⚠️ ONE ACCOUNT, ONE PERSON</p>
-              <p style={{ fontSize: 12, color: "#7f1d1d", lineHeight: 1.6 }}>
-                This account is registered to <strong>one person only</strong>. Sharing your account with others is automatically detected and will result in <strong>permanent deletion with no refund</strong>.
-              </p>
-            </div>
-
-            <TermsBox agreed={agreed} setAgreed={setAgreed} showTerms={showTerms} setShowTerms={setShowTerms} />
-
-            <button
-              onClick={handleEsewa}
-              disabled={paying || !agreed}
-              style={{ width: "100%", background: paying || !agreed ? "#e1e3e4" : "#60BB46", color: paying || !agreed ? "#767682" : "#fff", border: "none", borderRadius: 14, padding: "16px 0", fontSize: 16, fontWeight: 700, cursor: paying || !agreed ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: !paying && agreed ? "0 4px 14px rgba(96,187,70,0.35)" : "none", fontFamily: "inherit", marginBottom: 12 }}>
-              {paying ? (
-                <><span className="material-symbols-outlined" style={{ fontSize: 20, animation: "spin 1s linear infinite" }}>sync</span>Redirecting…</>
-              ) : (
-                <><span className="material-symbols-outlined" style={{ fontSize: 20, fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>Pay NPR 499 with eSewa</>
-              )}
-            </button>
-            <p style={{ fontSize: 12, color: "#767682", textAlign: "center" }}>
-              You will be redirected to eSewa&apos;s secure payment page.
-            </p>
-          </div>
-        )}
+        {/* Request Access button */}
+        <button
+          onClick={handleRequestAccess}
+          disabled={submitting || !agreed}
+          style={{
+            width: "100%",
+            background: submitting || !agreed ? "#e1e3e4" : "#0d2067",
+            color: submitting || !agreed ? "#767682" : "#fff",
+            border: "none",
+            borderRadius: 14,
+            padding: "16px 0",
+            fontSize: 16,
+            fontWeight: 700,
+            cursor: submitting || !agreed ? "not-allowed" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+            fontFamily: "inherit",
+            boxShadow: !submitting && agreed ? "0 4px 14px rgba(13,32,103,0.25)" : "none",
+            marginBottom: 12,
+          }}
+        >
+          {submitting ? (
+            <><span className="material-symbols-outlined" style={{ fontSize: 20, animation: "spin 1s linear infinite" }}>sync</span>Submitting…</>
+          ) : (
+            <><span className="material-symbols-outlined" style={{ fontSize: 20, fontVariationSettings: "'FILL' 1" }}>send</span>Request Access — NPR 499</>
+          )}
+        </button>
+        <p style={{ fontSize: 12, color: "#767682", textAlign: "center", lineHeight: 1.6 }}>
+          After requesting, contact <strong>9851093948</strong> on WhatsApp to complete payment and wait for admin approval.
+        </p>
       </main>
 
       <BottomNav />
@@ -385,7 +264,6 @@ function TermsBox({ agreed, setAgreed, showTerms, setShowTerms }: {
           {[
             "This is a practice tool — it does not guarantee actual exam content.",
             "Payment does not guarantee admission to any Cambridge examination.",
-            "QR payments require admin verification before access is granted.",
             "Payments are non-refundable once access is activated.",
             "Materials are for individual use only.",
           ].map((t) => (

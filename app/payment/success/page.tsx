@@ -58,7 +58,7 @@ function SuccessContent() {
           <span className="material-symbols-outlined" style={{ fontSize: 44, color: "#16a34a", fontVariationSettings: "'FILL' 1" }}>check_circle</span>
         </div>
         <h2 style={{ ...title, color: "#16a34a" }}>Payment Confirmed!</h2>
-        <p style={sub}>All 7 practice sets are now unlocked. Welcome to MoralEdu Care Upskill Prep!</p>
+        <p style={sub}>All 7 practice sets are now unlocked. Welcome to Upskill Preparation for Students!</p>
         <p style={{ marginTop: 20, fontSize: 13, color: "#767682" }}>Redirecting to dashboard…</p>
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>

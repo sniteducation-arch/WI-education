@@ -41,7 +41,7 @@ export default function FullExamLanding() {
       <span className="material-symbols-outlined" style={{ fontSize: 56, color: "#0d2067", marginBottom: 16, fontVariationSettings: "'FILL' 1" }}>lock</span>
       <h2 style={{ fontFamily: H, fontSize: 24, fontWeight: 700, color: "#0d2067", marginBottom: 10 }}>Full Exam — Paid Users Only</h2>
       <p style={{ fontSize: 15, color: "#454651", marginBottom: 28, maxWidth: 300, lineHeight: 1.6 }}>
-        Purchase the MoralEdu Care Upskill Prep pack to unlock the full Cambridge UpSkill practice exam.
+        Purchase the Upskill Preparation for Students pack to unlock the full Cambridge UpSkill practice exam.
       </p>
       <button onClick={() => router.push("/payment")}
         style={{ background: "#0d2067", color: "#fff", border: "none", borderRadius: 14, padding: "14px 32px", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: H }}>

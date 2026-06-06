@@ -33,12 +33,13 @@ interface SuspiciousAccount {
 
 interface AdminNotification {
   id: string;
-  type: "new_user" | "suspicious_login";
+  type: "new_user" | "suspicious_login" | "payment_request";
   uid: string;
   name: string;
   email: string;
   phone?: string;
   readableId?: string;
+  amount?: number;
   deviceMismatchCount?: number;
   createdAt: string | null;
   read: boolean;
@@ -223,6 +224,7 @@ export default function AdminDashboard() {
         ] as [AdminTab, string][]).map(([tab, label]) => {
           const badge = tab === "suspicious" ? suspiciousAccounts.length
             : tab === "notifications" ? adminNotifications.filter((n) => !n.read).length
+            : tab === "payments" ? requests.filter((r) => r.status === "pending").length
             : 0;
           return (
             <button key={tab} onClick={() => setActiveTab(tab)}
@@ -248,11 +250,11 @@ export default function AdminDashboard() {
             </div>
           )}
           {adminNotifications.map((n) => (
-            <div key={n.id} style={{ background: "#fff", borderRadius: 14, border: `1.5px solid ${n.type === "suspicious_login" ? "#fde68a" : "#bbf7d0"}`, padding: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+            <div key={n.id} style={{ background: "#fff", borderRadius: 14, border: `1.5px solid ${n.type === "suspicious_login" ? "#fde68a" : n.type === "payment_request" ? "#bfdbfe" : "#bbf7d0"}`, padding: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                 <div>
                   <p style={{ fontFamily: H, fontSize: 14, fontWeight: 700, color: "#191c1d" }}>
-                    {n.type === "new_user" ? "🆕 New Registration" : "⚠️ Suspicious Login"}
+                    {n.type === "new_user" ? "🆕 New Registration" : n.type === "payment_request" ? "💳 Payment Request" : "⚠️ Suspicious Login"}
                   </p>
                   <p style={{ fontSize: 12, color: "#454651", marginTop: 2 }}>{n.name} — {n.email}</p>
                 </div>
@@ -263,6 +265,10 @@ export default function AdminDashboard() {
               <div style={{ background: "#f8f9fa", borderRadius: 8, padding: 10, fontSize: 12, color: "#454651", display: "flex", flexDirection: "column", gap: 4 }}>
                 {n.readableId && <DetailRow label="User ID" value={n.readableId} />}
                 {n.phone && <DetailRow label="Phone" value={n.phone} />}
+                {n.amount && <DetailRow label="Amount" value={`NPR ${n.amount}`} />}
+                {n.type === "payment_request" && (
+                  <p style={{ fontSize: 12, color: "#1e40af", fontWeight: 600, marginTop: 4 }}>→ Go to Payments tab to approve or reject</p>
+                )}
                 {n.type === "suspicious_login" && n.deviceMismatchCount !== undefined && (
                   <DetailRow label="Mismatch #" value={`${n.deviceMismatchCount} different device(s)`} />
                 )}

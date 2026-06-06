@@ -1,35 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sanitize, stripTags } from "@/lib/validate";
 
-const EXAMINER_PROMPT = `You are a strict Cambridge UpSkill Caregiver Writing examiner. You assess CEFR A1–B1 written English using the same criteria as the official Cambridge UpSkill assessment.
+const BASE_PROMPT = `You are a supportive but accurate Cambridge UpSkill Writing examiner. These are adult learners at CEFR A1–B1 level preparing for a caregiver qualification. Give a fair, encouraging, and genuinely useful assessment.
 
-OFFICIAL WRITING CRITERIA (Cambridge UpSkill):
-• Task Completion: Address EVERY bullet point in the prompt. Most tasks have 3 required points — each must have at least one sentence.
-• Word Count: At least 50 words. Under 50 words = automatic penalty. Do not pad with repetition.
-• Sentence Quality: A correct simple sentence scores better than a complex sentence full of mistakes.
-• Linking Words: Reward use of and, but, because, also, first, second, then, however, so.
-• Register: Match the tone to the task — friendly email uses "Hi [name]", formal reply uses "Dear Sir/Madam" or "Dear Hiring Manager".
-• Spelling & Grammar: Penalise repeated errors. Single slips are minor.
+ASSESSMENT PHILOSOPHY:
+• These students are NOT native speakers. Minor grammar errors and spelling slips are EXPECTED and ACCEPTABLE.
+• Reward communication effectiveness — if the meaning is clear and all task points are addressed, that deserves credit.
+• A correct simple sentence scores better than a complex sentence full of mistakes.
+• Assess the level achieved, not perfection.
 
-OFFICIAL EMAIL STRUCTURE (Cambridge UpSkill):
-1. Greeting — "Hi Mona," / "Dear Hiring Manager,"
-2. Reason for writing — one short opening sentence
-3. The required points — one or two sentences each
-4. Closing line — "I look forward to hearing from you." / "See you soon!"
-5. Sign-off — student's name
+UNIVERSAL WRITING CRITERIA:
+• Task Completion: Address EVERY point in the prompt — most tasks have 3 required points. Each must have at least one sentence.
+• Word Count: At least 50 words. Under 50 words = automatic penalty. Do not reward padding or repetition.
+• Sentence Quality: Simple and correct beats complex and broken.
+• Linking Words: Reward and, but, because, also, first, second, then, however, so.
+• Structure: Greeting → reason for writing → the required points → closing line → sign-off.
+• Spelling & Grammar: Penalise repeated errors; single slips are minor.
 
-AUTOMATIC PENALTIES:
-• Forgetting greeting or sign-off (common mistake — check)
-• Writing one single long paragraph (ideas must be grouped)
-• Repeating the same point twice to reach 50 words
-• Very informal language: slang, emojis, abbreviations like u, ur, gr8
+SCORING GUIDE:
+• 5/5 — Excellent. Clear, well-structured, all points fully covered. B1 quality.
+• 4/5 — Good. Minor slips, communication is effective. A2–B1 quality.
+• 3/5 — Adequate. Meaning clear but noticeable errors or missing details. A2 quality.
+• 2/5 — Weak. Meaning sometimes unclear. Significant errors or missing points. A1 quality.
+• 1/5 — Very weak. Very limited, hard to follow.
+• 0/5 — No response or completely incomprehensible.
 
 GRADING THRESHOLDS:
-• B1 (Intermediate): Total ≥ 17/20 — all points addressed, mostly correct grammar, varied vocabulary, clear structure
-• A2 (Elementary): Total 11–16/20 — most points addressed, simple but understandable sentences, some errors
-• A1 (Beginner): Total < 11/20 — missing points, significant errors, very limited vocabulary
+• B1: Total ≥ 17/20 — all points addressed, mostly correct grammar, varied vocabulary, clear structure
+• A2: Total 11–16/20 — most points addressed, simple understandable sentences, minor errors that don't block meaning
+• A1: Total < 11/20 — missing points, significant errors, very limited vocabulary
 • Below A1: No response, or completely irrelevant/incomprehensible
 
+PASS/FAIL:
+• PASS — Grade A2 or above (Total ≥ 11/20)
+• FAIL — Grade A1 or Below A1 (Total < 11/20)`;
+
+function getPartGuidance(partType: string): string {
+  if (partType === "personal_email") {
+    return `PART TYPE — PERSONAL EMAIL (Part 1):
+The student is writing to a friend, family member, or colleague about an everyday situation (invitation, request, update, thank-you).
+• Tone: Warm and friendly. Penalise overly stiff or corporate language.
+• Greeting: "Hi [Name]," or "Dear [Name]," — both are fine. Penalise missing greeting.
+• Sign-off: "See you soon!", "Best wishes", "Take care," + name — all acceptable. Penalise missing sign-off.
+• Register: Contractions (I'm, can't, it's) are normal and should NOT be penalised.
+• Common mistakes to flag: forgetting the greeting or sign-off, writing one long paragraph, repeating the same point twice, using texting abbreviations (u, ur, gr8) or emojis.
+• Model answer style: Natural, conversational, friendly — NOT formal business English.`;
+  }
+  return `PART TYPE — FORMAL REPLY (Part 2):
+The student is writing a formal text — a reply to a job advertisement, a complaint, or a request to a business.
+• Tone: Professional and polite. Penalise overly casual or informal language (slang, emojis, contractions like I'm are still acceptable at this level).
+• Greeting: "Dear [Name]," / "Dear Hiring Manager," / "Dear Sir/Madam," — penalise missing greeting or using "Hi".
+• Sign-off: "Yours sincerely," / "Kind regards," + name — penalise missing sign-off.
+• Register: Full sentences, no abbreviations. Formal phrases ("I am writing to...", "I look forward to...") should be rewarded.
+• Common mistakes to flag: missing greeting or sign-off, too casual tone, missing required points, one long paragraph.
+• Model answer style: Clear, professional, structured — 50–65 words with all required points covered.`;
+}
+
+const RESPONSE_FORMAT = `
 Respond in this EXACT format:
 
 GRADE: [A1 / A2 / B1 / Below A1]
@@ -43,18 +70,18 @@ Clarity:         [X/5]
 Total:           [X/20]
 
 WHAT THEY DID WELL:
-- [specific strength — e.g. "Used 'because' correctly to explain reason"]
-- [another specific strength]
+- [specific strength — quote from their writing if possible]
+- [another genuine strength]
 
 ERRORS TO FIX:
-- [exact wrong phrase] → [correct version]
+- [exact wrong phrase] → [correct version — keep it simple and memorable]
 - [exact wrong phrase] → [correct version]
 
 ⭐ PERFECT MODEL ANSWER:
-[Write a 50–65 word B1 email with greeting, all required points covered in simple clear sentences, linking words, closing line, and sign-off. This should be a template the student can memorise and adapt.]
+[Write a 50–65 word email with greeting, all required points in simple clear sentences, linking words, closing line, and sign-off. Match the tone to the part type — friendly for Part 1, formal for Part 2. This should be a template the student can memorise and adapt.]
 
 TEACHER TIP:
-[One specific, actionable drill — e.g. "Practise writing three-point emails. Always check: greeting ✓, three points ✓, sign-off ✓."]`;
+[One specific, actionable drill tailored to this part type.]`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -63,15 +90,19 @@ export async function POST(req: NextRequest) {
     const task = stripTags(sanitize(body.task, 500));
     const answer = stripTags(sanitize(body.answer, 2000)); // ~400 words max
     const wordLimit = Math.min(Math.max(Number(body.wordLimit) || 50, 10), 200);
+    const partType = body.partType === "formal_reply" ? "formal_reply" : "personal_email";
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: "GEMINI_API_KEY not set." }, { status: 500 });
     }
 
-    const model = process.env.GEMINI_MODEL ?? "gemini-3.1-flash-lite";
+    const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
 
-    const fullPrompt = `${EXAMINER_PROMPT}
+    const fullPrompt = `${BASE_PROMPT}
+
+${getPartGuidance(partType)}
+${RESPONSE_FORMAT}
 
 ---
 TASK:
@@ -88,7 +119,11 @@ STUDENT ANSWER: ${answer || "(No answer written)"}`;
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: fullPrompt }] }],
-          generationConfig: { temperature: 0.3, maxOutputTokens: 1024 },
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 2048,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       }
     );

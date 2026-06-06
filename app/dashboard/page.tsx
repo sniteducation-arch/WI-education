@@ -55,7 +55,7 @@ export default function DashboardPage() {
     if (p.listening !== undefined) scores.push(p.listening);
   }
   const avg = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
-  const overallGrade = avg >= 75 ? "B1" : avg >= 50 ? "A2" : "A1";
+  const overallGrade = avg >= 80 ? "B1" : avg >= 50 ? "A2" : "A1";
   const setsAttempted = Array.from({ length: 7 }, (_, i) => {
     const p = progress[`set${i + 1}`] || {};
     return p.reading !== undefined || p.writing !== undefined || p.listening !== undefined || p.speaking;
@@ -160,10 +160,10 @@ export default function DashboardPage() {
               </div>
               <h3 style={{ fontFamily: H, fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Full Practice Exam</h3>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", marginBottom: 14, lineHeight: 1.5 }}>
-                Cambridge UpSkill pattern · 92 minutes · Listening, Reading, Writing & Speaking
+                Cambridge UpSkill pattern · 96 minutes · Listening, Reading, Writing & Speaking
               </p>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
-                {[["hearing","25 min"],["menu_book","25 min"],["edit_note","30 min"],["record_voice_over","12 min"]].map(([icon, time]) => (
+                {[["hearing","25 min"],["menu_book","25 min"],["edit_note","30 min"],["record_voice_over","16 min"]].map(([icon, time]) => (
                   <div key={icon} style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 10px", display: "flex", alignItems: "center", gap: 5 }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 14, color: "#fff" }}>{icon}</span>
                     <span style={{ fontSize: 11, color: "#fff", fontWeight: 600 }}>{time}</span>
@@ -223,7 +223,7 @@ function BentoGrid({
     { id: 2, label: "Core Vocabulary" },
     { id: 3, label: "Grammar & Syntax" },
     { id: 4, label: "Listening Mastery" },
-    { id: 5, label: "Care Communication", wide: true },
+    { id: 5, label: "Care Communication" },
     { id: 6, label: "Public Speaking" },
     { id: 7, label: "Final Mock Test" },
   ];
@@ -235,6 +235,16 @@ function BentoGrid({
     { key: "speaking",  icon: "record_voice_over" },
   ];
 
+  const cardBase: React.CSSProperties = {
+    background: "#fff",
+    borderRadius: 12,
+    cursor: "pointer",
+    transition: "box-shadow 0.2s, border-color 0.15s",
+    border: "1px solid #c6c5d2",
+    position: "relative",
+    overflow: "hidden",
+  };
+
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
       {setData.map((s) => {
@@ -243,16 +253,7 @@ function BentoGrid({
         const allDone = doneCount === 4;
         const locked = !paid;
 
-        const cardBase: React.CSSProperties = {
-          background: "#fff",
-          borderRadius: 12,
-          cursor: "pointer",
-          transition: "box-shadow 0.2s, transform 0.15s",
-          border: "1px solid #c6c5d2",
-          position: "relative",
-          overflow: "hidden",
-        };
-
+        /* ── Featured card (Set 1) — full width ── */
         if (s.featured) {
           return (
             <div
@@ -295,49 +296,34 @@ function BentoGrid({
           );
         }
 
-        if (s.wide) {
-          return (
-            <div
-              key={s.id}
-              style={{ ...cardBase, gridColumn: "1 / -1", display: "flex" }}
-              onClick={() => onSetClick(s.id)}
-              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; }}
-            >
-              {locked && <LockOverlay />}
-              <div style={{ width: "35%", background: "linear-gradient(135deg, #dde1ff, #b9c3ff)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 48, color: "#0d2067", opacity: 0.4, fontVariationSettings: "'FILL' 1" }}>menu_book</span>
-              </div>
-              <div style={{ padding: 16, flex: 1 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#454651" }}>Set {s.id}</span>
-                <h5 style={{ fontFamily: H, fontSize: 18, fontWeight: 600, color: "#0d2067", margin: "4px 0 6px" }}>{s.label}</h5>
-                <p style={{ fontSize: 12, color: "#454651", lineHeight: 1.5 }}>Listening, reading and speaking for caregiving scenarios.</p>
-              </div>
-            </div>
-          );
-        }
-
+        /* ── Regular cards (Sets 2–7) — uniform 2-col grid ── */
         return (
           <div
             key={s.id}
-            style={{ ...cardBase, padding: 16 }}
+            style={{ ...cardBase, padding: 14, display: "flex", flexDirection: "column", minHeight: 148 }}
             onClick={() => onSetClick(s.id)}
-            onMouseEnter={(e) => { if (!locked) e.currentTarget.style.borderColor = "#0d2067"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#c6c5d2"; }}
+            onMouseEnter={(e) => { if (!locked) e.currentTarget.style.borderColor = "#0d2067"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(13,32,103,0.10)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#c6c5d2"; e.currentTarget.style.boxShadow = "none"; }}
           >
             {locked && <LockOverlay />}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#454651" }}>Set {s.id}</span>
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: locked ? "#c6c5d2" : allDone ? "#346b00" : "#c6c5d2", fontVariationSettings: (locked || !allDone) ? "'FILL' 0" : "'FILL' 1" }}>
+            {/* Header row */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#767682", textTransform: "uppercase", letterSpacing: "0.04em" }}>Set {s.id}</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: locked ? "#c6c5d2" : allDone ? "#346b00" : "#c6c5d2", fontVariationSettings: (!locked && allDone) ? "'FILL' 1" : "'FILL' 0" }}>
                 {locked ? "lock" : allDone ? "check_circle" : "radio_button_unchecked"}
               </span>
             </div>
-            <h5 style={{ fontFamily: H, fontSize: 16, fontWeight: 600, color: "#0d2067", marginBottom: 10 }}>{s.label}</h5>
-            <div style={{ display: "flex", gap: 4 }}>
+            {/* Title */}
+            <h5 style={{ fontFamily: H, fontSize: 14, fontWeight: 700, color: "#0d2067", lineHeight: 1.3, marginBottom: "auto", paddingBottom: 12 }}>{s.label}</h5>
+            {/* Module progress bars */}
+            <div style={{ display: "flex", gap: 3 }}>
               {[0, 1, 2, 3].map((i) => (
                 <div key={i} style={{ height: 3, flex: 1, borderRadius: 9999, background: !locked && i < doneCount ? "#346b00" : "#e1e3e4" }} />
               ))}
             </div>
+            <p style={{ fontSize: 10, color: "#767682", marginTop: 5, fontWeight: 600 }}>
+              {locked ? "Locked" : `${doneCount}/4 modules`}
+            </p>
           </div>
         );
       })}

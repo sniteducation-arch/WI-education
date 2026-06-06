@@ -133,21 +133,34 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
   const [submitted, setSubmitted] = useState(false);
   const [evaluating, setEvaluating] = useState(false);
   const [aiResults, setAiResults] = useState<(string | null)[]>([null, null]);
+  const [showTips, setShowTips] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const uidRef = useRef("");
+  const handleSubmitRef = useRef<() => void>(() => {});
+  const autoSubmittedRef = useRef(false);
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) { router.push("/"); return; }
     setUid(user.uid);
+    uidRef.current = user.uid;
   }, [authLoading, user, router]);
 
   useEffect(() => {
     if (submitted) return;
     timerRef.current = setInterval(() => {
-      setTimeLeft((t) => { if (t <= 1) { handleSubmit(); return 0; } return t - 1; });
+      setTimeLeft((t) => (t <= 1 ? 0 : t - 1));
     }, 1000);
     return () => clearInterval(timerRef.current);
   }, [submitted]);
+
+  useEffect(() => {
+    if (timeLeft === 0 && !autoSubmittedRef.current) {
+      autoSubmittedRef.current = true;
+      clearInterval(timerRef.current);
+      handleSubmitRef.current();
+    }
+  }, [timeLeft]);
 
   const countWords = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
@@ -167,6 +180,7 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
               task: p.task,
               answer: answers[i] || "",
               wordLimit: p.wordLimit,
+              partType: i === 0 ? "personal_email" : "formal_reply",
             }),
           })
             .then((r) => r.json())
@@ -177,7 +191,8 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
       setAiResults(evals);
 
       // Save to Firebase — grade + full per-part breakdown for transcript
-      if (uid) {
+      const currentUid = uidRef.current || uid;
+      if (currentUid) {
         try {
           const mainEval = evals[1] ?? evals[0];
           const grade = mainEval ? (parseEval(mainEval).grade) : "A1";
@@ -198,7 +213,7 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
             };
           });
 
-          const ref = doc(db, "users", uid);
+          const ref = doc(db, "users", currentUid);
           const snap = await getDoc(ref);
           const existing = snap.data()?.progress || {};
           await updateDoc(ref, {
@@ -218,6 +233,9 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
       setEvaluating(false);
     }
   };
+
+  // Keep handleSubmitRef current so the auto-submit effect always calls the latest version
+  useEffect(() => { handleSubmitRef.current = handleSubmit; });
 
   const mm = String(Math.floor(timeLeft / 60)).padStart(2, "0");
   const ss = String(timeLeft % 60).padStart(2, "0");
@@ -277,12 +295,19 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
     );
   }
 
+  const isPersonal = part === 0;
+  const partLabel = isPersonal ? "Personal Email" : "Formal Reply";
+  const partIcon = isPersonal ? "✉" : "📝";
+  const partHint = isPersonal
+    ? "Write to a friend, family member, or colleague. Use a friendly greeting (Hi [Name],) and a warm sign-off."
+    : "Write a formal text — to an employer, business, or organisation. Use a formal greeting (Dear [Name/Title],) and a professional tone.";
+
   // ── Writing screen ──
   return (
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       {/* Header */}
       <div style={{ background: "linear-gradient(135deg, #4c1d95, #7c3aed)", padding: "16px 20px", flexShrink: 0 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <button onClick={() => router.push(`/test/${setId}`)} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 8, padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: "#fff", fontSize: 13 }}>
             <ArrowLeft size={14} /> Back
           </button>
@@ -292,29 +317,75 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
           </div>
         </div>
         <p style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>Writing · Set {setNum}</p>
-        <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>Part {part + 1} of {prompts.length}</p>
-        <div style={{ marginTop: 10, display: "flex", gap: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2, marginBottom: 10 }}>
+          <span style={{ background: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 11, fontWeight: 700, borderRadius: 6, padding: "2px 10px", letterSpacing: "0.04em" }}>
+            {partIcon} PART {part + 1} — {partLabel.toUpperCase()}
+          </span>
+          <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 11 }}>~15 min · 50+ words</span>
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
           {prompts.map((_, i) => (
             <div key={i} style={{ flex: 1, height: 4, borderRadius: 4, background: i <= part ? "#fff" : "rgba(255,255,255,0.3)" }} />
           ))}
         </div>
       </div>
 
-      {/* Situation + Task — always visible, never scrolls away */}
-      <div style={{ padding: "14px 16px", background: "#faf8ff", borderBottom: "1.5px solid #ede9fe", flexShrink: 0 }}>
-        <div style={{ background: "#f5f3ff", border: "1.5px solid #ddd6fe", borderRadius: 12, padding: "12px 14px", marginBottom: 8 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: "#7c3aed", marginBottom: 4 }}>SITUATION</p>
+      {/* Situation + Task — always visible */}
+      <div style={{ padding: "12px 16px", background: "#faf8ff", borderBottom: "1.5px solid #ede9fe", flexShrink: 0 }}>
+        <div style={{ background: "#f5f3ff", border: "1.5px solid #ddd6fe", borderRadius: 12, padding: "10px 14px", marginBottom: 8 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: "#7c3aed", marginBottom: 3, letterSpacing: "0.06em" }}>SITUATION</p>
           <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>{current?.situation}</p>
         </div>
-        <div style={{ background: "#fff", border: "1.5px solid #e2e8f0", borderRadius: 12, padding: "12px 14px" }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: "#1e3a8a", marginBottom: 4 }}>YOUR TASK</p>
+        <div style={{ background: "#fff", border: "1.5px solid #e2e8f0", borderRadius: 12, padding: "10px 14px" }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: "#1e3a8a", marginBottom: 3, letterSpacing: "0.06em" }}>YOUR TASK</p>
           <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.6 }}>{current?.task}</p>
-          <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>Write approximately {current?.wordLimit} words.</p>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 11, color: "#7c3aed", fontWeight: 700, background: "#f3e8ff", borderRadius: 6, padding: "2px 8px" }}>
+              {partIcon} {partLabel}
+            </span>
+            <span style={{ fontSize: 11, color: "#64748b" }}>Write at least {current?.wordLimit} words</span>
+          </div>
+        </div>
+
+        {/* Part tone hint */}
+        <div style={{ marginTop: 8, background: isPersonal ? "#f0fdf4" : "#eff6ff", border: `1px solid ${isPersonal ? "#bbf7d0" : "#bfdbfe"}`, borderRadius: 10, padding: "8px 12px" }}>
+          <p style={{ fontSize: 12, color: isPersonal ? "#166534" : "#1e40af", lineHeight: 1.5 }}>
+            <strong>Tone:</strong> {partHint}
+          </p>
         </div>
       </div>
 
       {/* Write area — scrollable */}
-      <div style={{ flex: 1, padding: "16px 16px", overflowY: "auto" }}>
+      <div style={{ flex: 1, padding: "12px 16px 16px", overflowY: "auto" }}>
+
+        {/* Collapsible tips */}
+        <button
+          onClick={() => setShowTips((v) => !v)}
+          style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: "#7c3aed", fontSize: 12, fontWeight: 700, padding: 0, marginBottom: 10 }}
+        >
+          <span style={{ fontSize: 14 }}>{showTips ? "▲" : "▼"}</span>
+          {showTips ? "Hide writing tips" : "Show writing tips"}
+        </button>
+
+        {showTips && (
+          <div style={{ background: "#faf8ff", border: "1.5px solid #ddd6fe", borderRadius: 12, padding: 14, marginBottom: 14 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: "#4c1d95", marginBottom: 8 }}>5 RULES THAT ALWAYS APPLY</p>
+            {[
+              "Address every point — most tasks ask you to cover three things. Write at least one sentence for each.",
+              "Write at least 50 words — the counter below tracks this in real time.",
+              "Keep sentences simple — a correct simple sentence beats a complicated one full of mistakes.",
+              "Use linking words — and, but, because, also, first, second, then.",
+              "Check spelling and grammar before you submit — a quick re-read is worth it.",
+            ].map((tip, i) => (
+              <p key={i} style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, marginBottom: 4, paddingLeft: 10 }}>• {tip}</p>
+            ))}
+            <p style={{ fontSize: 12, fontWeight: 700, color: "#4c1d95", marginTop: 10, marginBottom: 6 }}>RELIABLE EMAIL STRUCTURE</p>
+            {['Greeting — "Hi Mona," / "Dear Hiring Manager,"', "Reason for writing — one short opening sentence.", "The required points — one or two sentences each.", 'Closing line — "See you soon!" / "I look forward to hearing from you."', "Sign-off — your name."].map((s, i) => (
+              <p key={i} style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, paddingLeft: 10 }}>{i + 1}. {s}</p>
+            ))}
+          </div>
+        )}
+
         <div style={{ position: "relative" }}>
           <textarea
             value={answers[part]}
@@ -323,16 +394,23 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
               updated[part] = e.target.value;
               setAnswers(updated);
             }}
-            placeholder="Start writing your answer here…"
-            rows={8}
-            style={{ width: "100%", background: "#fff", border: "2px solid #e2e8f0", borderRadius: 14, padding: "14px 14px 40px", fontSize: 15, color: "#1e293b", outline: "none", resize: "none", lineHeight: 1.7, fontFamily: "inherit", boxSizing: "border-box" }}
+            placeholder={isPersonal
+              ? "Hi [Name],\n\nI am writing to…\n\n[Your name]"
+              : "Dear [Name/Hiring Manager],\n\nI am writing to…\n\nYours sincerely,\n[Your name]"}
+            rows={9}
+            style={{ width: "100%", background: "#fff", border: `2px solid ${wc >= 50 ? "#a3e635" : "#e2e8f0"}`, borderRadius: 14, padding: "14px 14px 44px", fontSize: 15, color: "#1e293b", outline: "none", resize: "none", lineHeight: 1.7, fontFamily: "inherit", boxSizing: "border-box", transition: "border-color 0.2s" }}
           />
-          <div style={{ position: "absolute", bottom: 10, right: 14, fontSize: 12, color: wc >= (current?.wordLimit || 50) ? "#16a34a" : "#94a3b8", fontWeight: 600 }}>
-            {wc} / {current?.wordLimit} words
+          <div style={{ position: "absolute", bottom: 10, left: 14, right: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 11, color: wc < 50 ? "#dc2626" : "#16a34a", fontWeight: 700 }}>
+              {wc < 50 ? `${50 - wc} more word${50 - wc !== 1 ? "s" : ""} needed` : "Word count met ✓"}
+            </span>
+            <span style={{ fontSize: 12, color: wc >= (current?.wordLimit || 50) ? "#16a34a" : "#94a3b8", fontWeight: 700 }}>
+              {wc} / {current?.wordLimit} words
+            </span>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
           {part > 0 && (
             <button onClick={() => setPart(0)} style={{ flex: 1, background: "#f1f5f9", color: "#64748b", border: "none", borderRadius: 12, padding: "13px 0", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
               ← Part 1
@@ -340,7 +418,7 @@ export default function WritingPage({ params }: { params: Promise<{ setId: strin
           )}
           {part < prompts.length - 1 ? (
             <button onClick={() => setPart(1)} style={{ flex: 2, background: "linear-gradient(135deg, #4c1d95, #7c3aed)", color: "#fff", border: "none", borderRadius: 12, padding: "13px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-              Next Part →
+              Next → Formal Reply
             </button>
           ) : (
             <button onClick={handleSubmit} style={{ flex: 2, background: "linear-gradient(135deg, #16a34a, #22c55e)", color: "#fff", border: "none", borderRadius: 12, padding: "13px 0", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>

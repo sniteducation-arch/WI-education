@@ -51,9 +51,9 @@ export default function VerifyEmailPage() {
       <header style={{ background: "#fff", borderBottom: "1px solid #c6c5d2", height: 64, display: "flex", alignItems: "center", paddingLeft: 20, gap: 12 }}>
         <div style={{ width: 40, height: 40, borderRadius: 8, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="MoralEdu Care" style={{ width: 40, height: 40, objectFit: "contain" }} />
+          <img src="/moral-logo.png" alt="Moral Educare" style={{ width: 40, height: 40, objectFit: "contain" }} />
         </div>
-        <h1 style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 20, fontWeight: 700, color: "#0d2067" }}>MoralEdu Care Upskill Prep</h1>
+        <h1 style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 20, fontWeight: 700, color: "#0d2067" }}>Upskill Preparation for Students</h1>
       </header>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", textAlign: "center" }}>

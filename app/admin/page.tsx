@@ -68,10 +68,10 @@ export default function AdminLoginPage() {
       <div style={{ background: "#fff", borderRadius: 20, padding: 36, width: "100%", maxWidth: 360, textAlign: "center", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
         <div style={{ width: 56, height: 56, borderRadius: 14, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="MoralEdu Care" style={{ width: 56, height: 56, objectFit: "contain" }} />
+          <img src="/moral-logo.png" alt="Moral Educare" style={{ width: 56, height: 56, objectFit: "contain" }} />
         </div>
         <h1 style={{ fontFamily: H, fontSize: 22, fontWeight: 700, color: "#0d2067", marginBottom: 6 }}>Admin Portal</h1>
-        <p style={{ fontSize: 13, color: "#454651", marginBottom: 28 }}>MoralEdu Care · Payment Approvals</p>
+        <p style={{ fontSize: 13, color: "#454651", marginBottom: 28 }}>Upskill Prep · Payment Approvals</p>
 
         <button
           onClick={handleGoogleLogin}

@@ -1,6 +1,5 @@
 ﻿"use client";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 interface TopBarProps {
   title?: string;
@@ -9,7 +8,7 @@ interface TopBarProps {
   rightSlot?: React.ReactNode;
 }
 
-export default function TopBar({ title = "MoralEdu Care Upskill Prep", showBack, backHref, rightSlot }: TopBarProps) {
+export default function TopBar({ title = "Upskill Preparation for Students", showBack, backHref, rightSlot }: TopBarProps) {
   const router = useRouter();
 
   const handleBack = () => {
@@ -59,7 +58,8 @@ export default function TopBar({ title = "MoralEdu Care Upskill Prep", showBack,
           </button>
         ) : (
           <div style={{ width: 40, height: 40, borderRadius: 10, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Image src="/logo.png" alt="MoralEdu Care" width={40} height={40} style={{ objectFit: "contain" }} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/moral-logo.png" alt="Moral Educare" width={40} height={40} style={{ objectFit: "contain" }} />
           </div>
         )}
         <h1

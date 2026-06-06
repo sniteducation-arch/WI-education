@@ -66,7 +66,7 @@ export default function SetDetailPage({ params }: { params: Promise<{ setId: str
     const scores = [progress.reading, progress.writing, progress.listening].filter((s) => s !== undefined) as number[];
     if (scores.length === 0) return null;
     const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-    if (avg >= 75) return "B1";
+    if (avg >= 80) return "B1";
     if (avg >= 50) return "A2";
     return "A1";
   })();
@@ -86,7 +86,7 @@ export default function SetDetailPage({ params }: { params: Promise<{ setId: str
             <h2 style={{ fontFamily: "var(--font-manrope)", fontSize: 32, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", marginBottom: 4 }}>
               Practice Set #{setNum < 10 ? `0${setNum}` : setNum}
             </h2>
-            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.8)" }}>MoralEdu Care Upskill Prep · {name}</p>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.8)" }}>Upskill Preparation for Students · {name}</p>
           </div>
         </div>
 

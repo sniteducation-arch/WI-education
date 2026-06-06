@@ -5,7 +5,7 @@ import { ArrowLeft, AlertTriangle } from "lucide-react";
 const sections = [
   {
     title: "1. Nature of This Service",
-    content: `MoralEdu Care Upskill Prep is a private English language practice tool designed to help students prepare for the Cambridge UpSkill Assessment. This application is NOT affiliated with Cambridge Assessment English, CIIN (Cambridge International Institute of Nepal), or any official examination body.`,
+    content: `Upskill Preparation for Students is a private English language practice tool designed to help students prepare for the Cambridge UpSkill Assessment. This application is NOT affiliated with Cambridge Assessment English, CIIN (Cambridge International Institute of Nepal), or any official examination body.`,
   },
   {
     title: "2. No Guarantee of Exam Content",
@@ -55,7 +55,7 @@ export default function TermsPage() {
           <ArrowLeft size={14} /> Back
         </button>
         <h1 style={{ color: "#fff", fontSize: 20, fontWeight: 700 }}>Terms & Conditions</h1>
-        <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, marginTop: 4 }}>MoralEdu Care Upskill Prep</p>
+        <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, marginTop: 4 }}>Upskill Preparation for Students</p>
       </div>
 
       {/* Important disclaimer */}
