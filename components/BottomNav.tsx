@@ -1,11 +1,13 @@
-﻿"use client";
+"use client";
 import { usePathname, useRouter } from "next/navigation";
 
+const INTER: React.CSSProperties = { fontFamily: "'Inter', system-ui, sans-serif" };
+
 const tabs = [
-  { label: "Practice", icon: "exercise", href: "/dashboard" },
-  { label: "Results",  icon: "analytics", href: "/transcript" },
-  { label: "Payments", icon: "payments",  href: "/payment" },
-  { label: "Profile",  icon: "person",    href: "/profile" },
+  { label: "PRACTICE", icon: "menu_book",  href: "/dashboard" },
+  { label: "RESULTS",  icon: "analytics",  href: "/transcript" },
+  { label: "PAYMENTS", icon: "payments",   href: "/payment" },
+  { label: "PROFILE",  icon: "person",     href: "/profile" },
 ];
 
 export default function BottomNav() {
@@ -22,12 +24,12 @@ export default function BottomNav() {
         width: "100%",
         maxWidth: 480,
         zIndex: 50,
-        background: "#fff",
-        boxShadow: "0px -4px 12px rgba(13,32,103,0.06)",
+        background: "#fbf9f8",
+        borderTop: "1px solid #c4c6ce",
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-around", alignItems: "center", height: 72 }}>
+      <div style={{ display: "flex", justifyContent: "space-around", alignItems: "stretch", height: 72 }}>
         {tabs.map((tab) => {
           const active = pathname === tab.href || (tab.href === "/dashboard" && pathname.startsWith("/test"));
           return (
@@ -35,25 +37,25 @@ export default function BottomNav() {
               key={tab.label}
               onClick={() => router.push(tab.href)}
               style={{
+                flex: 1,
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 2,
-                background: active ? "#dde1ff" : "transparent",
+                gap: 3,
+                background: "transparent",
                 border: "none",
-                borderRadius: active ? 9999 : 0,
-                padding: active ? "6px 18px" : "6px 12px",
+                borderTop: active ? "2px solid #775a19" : "2px solid transparent",
                 cursor: "pointer",
+                paddingTop: 10,
                 transition: "all 0.15s",
-                minWidth: 64,
               }}
             >
               <span
                 className="material-symbols-outlined"
                 style={{
                   fontSize: 22,
-                  color: active ? "#0d2067" : "#454651",
+                  color: active ? "#775a19" : "#44474e",
                   fontVariationSettings: active ? "'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24" : "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24",
                 }}
               >
@@ -61,11 +63,12 @@ export default function BottomNav() {
               </span>
               <span
                 style={{
-                  fontSize: 11,
-                  fontWeight: active ? 700 : 400,
-                  color: active ? "#0d2067" : "#454651",
+                  ...INTER,
+                  fontSize: 9,
+                  fontWeight: active ? 700 : 500,
+                  color: active ? "#775a19" : "#44474e",
+                  letterSpacing: "0.08em",
                   lineHeight: 1,
-                  fontFamily: "inherit",
                 }}
               >
                 {tab.label}
@@ -77,5 +80,3 @@ export default function BottomNav() {
     </nav>
   );
 }
-
-

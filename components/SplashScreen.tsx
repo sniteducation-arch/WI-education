@@ -58,7 +58,7 @@ export default function SplashScreen() {
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/moral-logo.png" alt="Moral Educare" style={{ width: 76, height: 76, objectFit: "contain" }} />
+        <img src="/logo.png" alt="WI Upskill" style={{ width: 76, height: 76, objectFit: "contain" }} />
       </div>
 
       {/* App name */}
@@ -75,7 +75,7 @@ export default function SplashScreen() {
           padding: "0 24px",
         }}
       >
-        Upskill Preparation for Students
+        WI Upskill
       </h1>
 
       {/* Tagline */}
@@ -90,7 +90,7 @@ export default function SplashScreen() {
           fontWeight: 600,
         }}
       >
-        Cambridge UpSkill Assessment
+        WI Education · Cambridge UpSkill
       </p>
 
       {/* Bottom loading dots */}

@@ -114,6 +114,70 @@ const TRANSCRIPTS = {
   "l3p5q2": "I have just checked on Mr. Vasquez and found him on the floor next to his bed. He seems confused but is conscious and says his hip hurts. I have not moved him. I have pressed the emergency buzzer and I am staying with him until the nurse arrives.",
   "l3p5q3": "The dietitian has left a note saying that three residents need to be encouraged to eat more protein. Please offer them cheese, eggs or meat with every meal and record how much they eat on the nutrition monitoring sheet.",
   "l3p5q4": "A reminder that tomorrow's morning medication round will start at 7:30 AM instead of 8 AM because the pharmacist is coming early to audit the controlled drugs cabinet. Please make sure all night staff have updated the medication records before handing over.",
+
+  // ════════════════════════════════════════════════════════
+  // SET 4 — Medication Safety
+  // ════════════════════════════════════════════════════════
+  "l4p1q1": "Nurse: Mr. Kim has been given the wrong dose of his blood thinner this morning. Can you check the medication chart and let me know what it says?",
+  "l4p1q2": "Resident: These tablets look different from the ones I usually take. Are you sure they are mine?",
+  "l4p1q3": "Senior caregiver: Have you signed the medication administration record after giving Mrs. Park her morning tablets?",
+  "l4p1q4": "Manager: We have had a complaint that a resident's medication was given 45 minutes late today. Can you explain what happened?",
+  "l4p2q1": "Medication safety training: Before giving any medication, always follow these steps. First, wash your hands. Second, check the resident's full name and date of birth against the medication chart. Third, check the medication name, dose, and expiry date. Fourth, explain to the resident what the medication is for. Finally, give the medication, watch the resident take it, and sign the administration record.",
+  "l4p3q1": "Nurse: All controlled drugs must be counted and checked by two members of staff at the start and end of every shift. Never give controlled drugs alone.",
+  "l4p3q2": "Nurse: Mrs. Thompson's antibiotic must be given with food to prevent stomach upset. Please make sure she has eaten before you give it.",
+  "l4p3q3": "Manager: Any medication error, even a near-miss, must be reported immediately to the nurse in charge and recorded on an incident form. Do not wait until the end of the shift.",
+  "l4p3q4": "Nurse: Mr. Patel refused his evening medication today. This must be documented in the medication administration record and the reason noted if he gives one.",
+  "l4p4q1": "Diabetes Care Briefing: For residents with diabetes, check blood sugar levels before meals. A reading below 4 means hypoglycaemia. Give 15 grams of fast-acting sugar, for example a small glass of fruit juice or three glucose tablets. Wait 15 minutes and check again. If the reading is still below 4, repeat. Always inform the nurse and document the reading and action taken.",
+  "l4p5q1": "Night Shift Handover: Good evening. Key points for tonight. Mrs. Martinez in Room 12 has been started on a new sleep medication. She may be drowsy in the morning, so wake her gently. Mr. Singh in Room 4 had a fall this afternoon. He is on one-hour observations and his call bell must be answered within 2 minutes. Mrs. Obi in Room 7 has refused all food and fluids today. Document every offer and refusal on her monitoring sheet. If she still refuses by midnight, call the on-call nurse.",
+  "l4p5q4": "Caregiver report: I found Mr. Jackson's medication still in his cup at 9:30 PM. He told me he had hidden it under his tongue earlier and spat it out when I left the room. I informed the nurse immediately and documented the incident. The nurse will review his medication form and may call the GP.",
+
+  // ════════════════════════════════════════════════════════
+  // SET 5 — Personal Care & Dignity
+  // ════════════════════════════════════════════════════════
+  "l5p1q1": "Senior caregiver: Mrs. Novak has asked not to be assisted with personal care by male carers. Have you noted this in her care plan?",
+  "l5p1q2": "Resident: I don't want you to open the curtains while you help me get dressed. I like my privacy.",
+  "l5p1q3": "Nurse: Mr. Dube's skin assessment showed a new pressure sore on his heel. Can you make sure he is repositioned every two hours?",
+  "l5p1q4": "Colleague: Mrs. Hassan keeps calling out at night. Her family says she used to listen to music to help her sleep. Should we try that?",
+  "l5p2q1": "Personal care training: When assisting a resident with a shower, follow this order. First, explain what you are going to do and ask for their consent. Second, check the water temperature before the resident steps in. Third, close the door to ensure privacy throughout. Fourth, hand the resident items they can manage themselves to promote independence. Finally, help dry and dress them and check their skin for any redness or sores.",
+  "l5p3q1": "Manager: Always knock and wait for a response before entering any resident's room. Even if the door is open, this shows respect for their personal space.",
+  "l5p3q2": "Nurse: Mr. Okafor has a tissue viability concern. His sacrum should be checked every four hours and a repositioning chart completed each time he is turned.",
+  "l5p3q3": "Senior caregiver: When helping a resident to eat, always sit down at their level. Never stand over them. It can feel disrespectful and may affect how well they eat.",
+  "l5p3q4": "Manager: Any resident who refuses personal care must have their refusal recorded, and the team must try again later and document that attempt too.",
+  "l5p4q1": "Dementia Care Briefing: Residents with dementia may become confused or anxious, especially in the late afternoon, sometimes called sundowning. Approach calmly, use simple short sentences, and maintain eye contact. Do not argue or correct them if they say something untrue, as this increases distress. Use distraction, such as a familiar activity, music, or a favourite object. If behaviour becomes very challenging, do not restrain the resident. Call for support immediately and document the episode.",
+  "l5p5q1": "Family Communication Briefing: When a resident's family calls, always be warm and professional. If they ask for clinical information such as test results, diagnosis changes, or medication updates, you must not share this yourself. Politely explain that only the nurse or doctor in charge can give clinical information. Take the family member's name and phone number and pass the message to the nurse straight away. If a family member becomes angry or upset, remain calm. Do not raise your voice. If the situation escalates, ask a senior colleague to step in.",
+  "l5p5q4": "Caregiver: Mrs. Lee told me today she has been feeling lonely since her roommate left last month. She asked if she could be moved closer to the lounge so she has more company during the day. I have added this to her daily notes and will mention it at the next care review.",
+
+  // ════════════════════════════════════════════════════════
+  // SET 6 — Emergencies & First Aid
+  // ════════════════════════════════════════════════════════
+  "l6p1q1": "Colleague: Mr. Adeyemi has just choked on his food but he is coughing hard and can still speak. What should we do?",
+  "l6p1q2": "Manager: The fire alarm has just been tested. All staff must know the location of the assembly point. Do you know where it is?",
+  "l6p1q3": "Nurse: Mrs. Fernandez has pressed her emergency buzzer and says she feels very short of breath. Can you go to her immediately?",
+  "l6p1q4": "Senior caregiver: We had a near-miss this morning. A wet floor with no warning sign. Did you see who mopped it?",
+  "l6p2q1": "Falls response training: When you find a resident on the floor, always follow these steps. First, stay calm and do not move the resident. Second, check if they are conscious and can respond to you. Third, press the emergency buzzer or call for help. Fourth, stay with the resident and reassure them until help arrives. Finally, once the nurse has assessed the resident, complete an incident report.",
+  "l6p3q1": "Manager: All staff must know where the defibrillator is kept. It is located in the reception area next to the main entrance. Please check it every morning.",
+  "l6p3q2": "Nurse: If a resident has a seizure, do not hold them down or put anything in their mouth. Time the seizure and call for help immediately.",
+  "l6p3q3": "Fire safety trainer: In a fire, remember RACE. Rescue, Alarm, Contain, Evacuate. The most important first step is to rescue any resident in immediate danger.",
+  "l6p3q4": "Senior caregiver: The evacuation chair is stored on the second floor next to the lift. Only trained staff may use it. It is for residents who cannot use the stairs.",
+  "l6p4q1": "Choking Response Briefing: If a resident is choking and cannot cough, speak, or breathe, act immediately. Stand behind them, lean them slightly forward, and give up to five firm back blows between the shoulder blades. If this does not clear the blockage, perform up to five abdominal thrusts. Place your fist above the navel and pull sharply inward and upward. If the blockage is still not cleared, call 999 and continue cycles of five back blows and five abdominal thrusts. Always report and document any choking incident, even if resolved.",
+  "l6p5q1": "Fire Evacuation Briefing: In the event of a fire, do not use the lifts. Assist residents to the nearest fire exit using the posted evacuation route. If a resident cannot walk, use the evacuation chair. Only trained staff may do this. Close all doors behind you as you evacuate. This slows the spread of smoke and fire. At the assembly point, account for every resident on your list. Do not re-enter the building until the fire officer gives the all-clear. If you cannot evacuate a resident, move them to a refuge area and contact the fire brigade.",
+  "l6p5q4": "Nurse: This afternoon Mr. Wu experienced a sudden drop in blood pressure. He became pale, dizzy, and nearly fainted during his walk to the lounge. We helped him safely to the floor, raised his legs, and called the GP. He has now recovered and is resting. Please monitor him every 30 minutes and record his blood pressure on the observation chart.",
+
+  // ════════════════════════════════════════════════════════
+  // SET 7 — End of Life & Professional Development
+  // ════════════════════════════════════════════════════════
+  "l7p1q1": "Senior caregiver: Mr. Gibson is in the final stages of his illness. His family is with him now. How can we best support them?",
+  "l7p1q2": "Nurse: You have a supervision meeting with the manager at 2 PM today. Please bring your reflective journal and any training certificates.",
+  "l7p1q3": "Resident's daughter: I am worried that my mother is not being repositioned often enough. She has marks on her skin.",
+  "l7p1q4": "Manager: Your probation period ends next month. I would like to discuss your progress and development goals. Can you prepare a short self-assessment?",
+  "l7p2q1": "Handover report training: When writing your shift handover report, follow this structure. First, record the date, your name, and the shift time. Second, note any changes in a resident's condition since the last handover. Third, record any medication given, refused, or omitted and the reason. Fourth, note any incidents or near-misses, even if minor. Finally, sign and date the report and hand it to the next shift caregiver in person.",
+  "l7p3q1": "Training facilitator: Every caregiver must complete a mandatory annual appraisal with their line manager. This is your opportunity to discuss your progress, goals, and any training needs.",
+  "l7p3q2": "Senior caregiver: In palliative care, always follow the resident's advance care plan. If they have a Do Not Resuscitate order in place, this must be respected and clearly documented.",
+  "l7p3q3": "Manager: All staff who identify a training need must log it in the training register by the end of the month. This helps us plan the right courses for the team.",
+  "l7p3q4": "Nurse: Mrs. Reyes passed away peacefully this morning. Her body must remain undisturbed until the doctor has confirmed the death and the family are ready.",
+  "l7p4q1": "Cultural Sensitivity Briefing: Every resident comes from a unique cultural background and our care must reflect this. Before carrying out personal care, check the care plan for any religious or cultural preferences. For example, some residents require same-gender carers, specific prayer times must be respected, and some residents follow dietary laws. Never assume. Always ask the resident or their family. If you are unsure about a cultural need, speak to your manager rather than guessing. Document any preferences clearly so all staff are aware.",
+  "l7p5q1": "Staff Development Meeting: Welcome everyone. Our medication error rate has reduced by 40 percent this year, and resident satisfaction scores are the highest since we opened. Several of you have completed your NVQ Level 2. Well done. Looking ahead, we will introduce a new digital care recording system in January. Training will be in December and attendance is mandatory. Please inform your line manager of any scheduling conflicts as soon as possible.",
+  "l7p5q4": "Caregiver reflective note: Today I made a mistake. I gave Mrs. Afolabi her lunch before confirming her texture-modified diet. Fortunately the food was soft and she was fine. I reported it to the nurse, completed an incident form, and reviewed her care plan carefully. I have learned to always check the care plan before preparing or serving food.",
 };
 
 // ── Question ID → audio file ID (shared transcripts reuse the same file) ──────
@@ -123,20 +187,44 @@ const URL_MAP = {
   l1p2q1:"l1p2q1",
   l1p3q1:"l1p3q1", l1p3q2:"l1p3q2", l1p3q3:"l1p3q3", l1p3q4:"l1p3q4",
   l1p4q1:"l1p4q1", l1p4q2:"l1p4q2", l1p4q3:"l1p4q3", l1p4q4:"l1p4q4",
-  l1p5q1:"l1p5q1", l1p5q2:"l1p5q1", l1p5q3:"l1p5q1",  // same Health & Safety briefing
+  l1p5q1:"l1p5q1", l1p5q2:"l1p5q1", l1p5q3:"l1p5q1",
   l1p5q4:"l1p5q4",
   // Set 2
   l2p1q1:"l2p1q1", l2p1q2:"l2p1q2", l2p1q3:"l2p1q3", l2p1q4:"l2p1q4",
   l2p2q1:"l2p2q1",
   l2p3q1:"l2p3q1", l2p3q2:"l2p3q2", l2p3q3:"l2p3q3", l2p3q4:"l2p3q4",
-  l2p4q1:"l2p4q1", l2p4q2:"l2p4q1", l2p4q3:"l2p4q1", l2p4q4:"l2p4q1", // shared — long briefing
+  l2p4q1:"l2p4q1", l2p4q2:"l2p4q1", l2p4q3:"l2p4q1", l2p4q4:"l2p4q1",
   l2p5q1:"l2p5q1", l2p5q2:"l2p5q2", l2p5q3:"l2p5q3", l2p5q4:"l2p5q4",
   // Set 3
   l3p1q1:"l3p1q1", l3p1q2:"l3p1q2", l3p1q3:"l3p1q3", l3p1q4:"l3p1q4",
   l3p2q1:"l3p2q1",
   l3p3q1:"l3p3q1", l3p3q2:"l3p3q2", l3p3q3:"l3p3q3", l3p3q4:"l3p3q4",
-  l3p4q1:"l3p4q1", l3p4q2:"l3p4q1", l3p4q3:"l3p4q1", l3p4q4:"l3p4q1", // shared — safeguarding briefing
+  l3p4q1:"l3p4q1", l3p4q2:"l3p4q1", l3p4q3:"l3p4q1", l3p4q4:"l3p4q1",
   l3p5q1:"l3p5q1", l3p5q2:"l3p5q2", l3p5q3:"l3p5q3", l3p5q4:"l3p5q4",
+  // Set 4
+  l4p1q1:"l4p1q1", l4p1q2:"l4p1q2", l4p1q3:"l4p1q3", l4p1q4:"l4p1q4",
+  l4p2q1:"l4p2q1",
+  l4p3q1:"l4p3q1", l4p3q2:"l4p3q2", l4p3q3:"l4p3q3", l4p3q4:"l4p3q4",
+  l4p4q1:"l4p4q1", l4p4q2:"l4p4q1", l4p4q3:"l4p4q1", l4p4q4:"l4p4q1",
+  l4p5q1:"l4p5q1", l4p5q2:"l4p5q1", l4p5q3:"l4p5q1", l4p5q4:"l4p5q4",
+  // Set 5
+  l5p1q1:"l5p1q1", l5p1q2:"l5p1q2", l5p1q3:"l5p1q3", l5p1q4:"l5p1q4",
+  l5p2q1:"l5p2q1",
+  l5p3q1:"l5p3q1", l5p3q2:"l5p3q2", l5p3q3:"l5p3q3", l5p3q4:"l5p3q4",
+  l5p4q1:"l5p4q1", l5p4q2:"l5p4q1", l5p4q3:"l5p4q1", l5p4q4:"l5p4q1",
+  l5p5q1:"l5p5q1", l5p5q2:"l5p5q1", l5p5q3:"l5p5q1", l5p5q4:"l5p5q4",
+  // Set 6
+  l6p1q1:"l6p1q1", l6p1q2:"l6p1q2", l6p1q3:"l6p1q3", l6p1q4:"l6p1q4",
+  l6p2q1:"l6p2q1",
+  l6p3q1:"l6p3q1", l6p3q2:"l6p3q2", l6p3q3:"l6p3q3", l6p3q4:"l6p3q4",
+  l6p4q1:"l6p4q1", l6p4q2:"l6p4q1", l6p4q3:"l6p4q1", l6p4q4:"l6p4q1",
+  l6p5q1:"l6p5q1", l6p5q2:"l6p5q1", l6p5q3:"l6p5q1", l6p5q4:"l6p5q4",
+  // Set 7
+  l7p1q1:"l7p1q1", l7p1q2:"l7p1q2", l7p1q3:"l7p1q3", l7p1q4:"l7p1q4",
+  l7p2q1:"l7p2q1",
+  l7p3q1:"l7p3q1", l7p3q2:"l7p3q2", l7p3q3:"l7p3q3", l7p3q4:"l7p3q4",
+  l7p4q1:"l7p4q1", l7p4q2:"l7p4q1", l7p4q3:"l7p4q1", l7p4q4:"l7p4q1",
+  l7p5q1:"l7p5q1", l7p5q2:"l7p5q1", l7p5q3:"l7p5q1", l7p5q4:"l7p5q4",
 };
 
 // ── Generate one audio file ────────────────────────────────────────────────────

@@ -1,29 +1,32 @@
 @import "tailwindcss";
 
 @theme {
-  /* ─── Material You Color Tokens ─────────────────────── */
-  --color-primary:                  #0d2067;
-  --color-primary-container:        #28387e;
-  --color-on-primary:               #ffffff;
-  --color-on-primary-container:     #95a5f2;
-  --color-primary-fixed:            #dde1ff;
-  --color-secondary:                #346b00;
-  --color-secondary-container:      #abf374;
-  --color-on-secondary:             #ffffff;
-  --color-on-secondary-container:   #367000;
-  --color-surface:                  #f8f9fa;
-  --color-surface-container-low:    #f3f4f5;
-  --color-surface-container:        #edeeef;
-  --color-surface-container-high:   #e7e8e9;
-  --color-on-surface:               #191c1d;
-  --color-on-surface-variant:       #454651;
-  --color-outline:                  #767682;
-  --color-outline-variant:          #c6c5d2;
-  --color-error:                    #ba1a1a;
-  --color-esewa:                    #60BB46;
+  /* ─── Academic Color Tokens ─────────────────────────── */
+  --color-primary:                   #000b21;
+  --color-primary-container:         #0d2240;
+  --color-on-primary:                #ffffff;
+  --color-on-primary-container:      #778aad;
+  --color-primary-fixed:             #d6e3ff;
+  --color-secondary:                 #775a19;
+  --color-secondary-container:       #fed488;
+  --color-on-secondary:              #ffffff;
+  --color-on-secondary-container:    #785a1a;
+  --color-secondary-fixed:           #ffdea5;
+  --color-surface:                   #fbf9f8;
+  --color-surface-container-lowest:  #ffffff;
+  --color-surface-container-low:     #f5f3f3;
+  --color-surface-container:         #efeded;
+  --color-surface-container-high:    #eae8e7;
+  --color-surface-container-highest: #e4e2e2;
+  --color-on-surface:                #1b1c1c;
+  --color-on-surface-variant:        #44474e;
+  --color-outline:                   #75777e;
+  --color-outline-variant:           #c4c6ce;
+  --color-error:                     #ba1a1a;
+  --color-esewa:                     #60BB46;
 }
 
-/* ─── Material Symbols icon style ─────────────────────── */
+/* ─── Material Symbols ─────────────────────────────────── */
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined', sans-serif;
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
@@ -42,29 +45,22 @@
 
 /* ─── Base ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-
 body {
-  font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
-  background: #f8f9fa;
-  color: #191c1d;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: #fbf9f8;
+  color: #1b1c1c;
   min-height: 100dvh;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
 }
-
 input, textarea, button, select { font-family: inherit; }
-
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-/* Heading font helper */
-.font-display {
-  font-family: 'Manrope', system-ui, sans-serif;
-}
+.font-display { font-family: 'Libre Caslon Text', Georgia, serif; }
 
-/* ─── Splash screen animations ─────────────────────────── */
+/* ─── Splash animations ─────────────────────────────────── */
 @keyframes splash-logo-in {
   0%   { opacity: 0; transform: scale(0.72); }
   60%  { opacity: 1; transform: scale(1.06); }
@@ -82,9 +78,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
   0%   { opacity: 1; }
   100% { opacity: 0; pointer-events: none; }
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .splash-logo    { animation: splash-logo-in    0.55s cubic-bezier(0.34,1.56,0.64,1) 0.15s both; }
 .splash-title   { animation: splash-text-in    0.4s  ease-out                        0.6s  both; }

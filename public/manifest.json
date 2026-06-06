@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "MoralEdu Care Upskill Prep",
-  "short_name": "UpSkill Prep",
+  "name": "WI Upskill",
+  "short_name": "WI Upskill",
   "description": "Cambridge UpSkill exam practice tool for caregiver students in Nepal. Practice Reading, Writing, Listening and Speaking with AI feedback.",
   "start_url": "/?source=pwa",
   "scope": "/",
