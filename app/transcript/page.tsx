@@ -423,7 +423,7 @@ export default function TranscriptPage() {
         {/* Title */}
         <div style={{ marginBottom: 20 }}>
           <h2 style={{ fontFamily: H, fontSize: 28, fontWeight: 700, color: "#0d2067", letterSpacing: "-0.02em", marginBottom: 4 }}>Score Transcript</h2>
-          <p style={{ fontSize: 13, color: "#454651" }}>Upskill Preparation for Students · {date}</p>
+          <p style={{ fontSize: 13, color: "#454651" }}>WI Upskill Mock Test · {date}</p>
         </div>
 
         {/* Student card */}
@@ -612,9 +612,9 @@ export default function TranscriptPage() {
           );
         })}
 
-        {/* Cambridge UpSkill Speaking structure reference */}
+        {/* WI Upskill Speaking structure reference */}
         <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #c6c5d2", padding: 16, marginBottom: 16 }}>
-          <h3 style={{ fontFamily: H, fontSize: 15, fontWeight: 700, color: "#0d2067", marginBottom: 12 }}>Cambridge UpSkill — What Each Section Tests</h3>
+          <h3 style={{ fontFamily: H, fontSize: 15, fontWeight: 700, color: "#0d2067", marginBottom: 12 }}>WI Upskill Mock Test — What Each Section Tests</h3>
           {[
             {
               icon: "🎤", label: "Speaking (3 Parts · ~12 min)", color: "#059669",
@@ -665,7 +665,7 @@ export default function TranscriptPage() {
           <div style={{ display: "flex", gap: 10 }}>
             <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#92400e", flexShrink: 0, marginTop: 1 }}>info</span>
             <p style={{ fontSize: 12, color: "#92400e", lineHeight: 1.6 }}>
-              <strong>Disclaimer:</strong> Scores are for practice only and do not represent official Cambridge UpSkill Assessment results.
+              <strong>Disclaimer:</strong> Scores are for practice only and do not represent official assessment results.
             </p>
           </div>
         </div>

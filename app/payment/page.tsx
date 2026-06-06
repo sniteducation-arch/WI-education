@@ -73,7 +73,7 @@ export default function PaymentPage() {
       if (data.method === "client") {
         await setDoc(doc(db, "qr_requests", uid), {
           uid, readableId: readableId || uid.slice(0, 8),
-          name: name || "Unknown", email, note: "", amount: 499,
+          name: name || "Unknown", email, note: "", amount: 1500,
           status: "pending", submittedAt: serverTimestamp(),
         }, { merge: true });
       }
@@ -131,13 +131,13 @@ export default function PaymentPage() {
           <h2 style={{ ...CASLON, fontSize: 18, fontWeight: 600, color: "#000b21", borderBottom: "1px solid #c4c6ce", paddingBottom: 12, marginBottom: 16 }}>Enrollment Summary</h2>
           <div style={{ marginBottom: 16 }}>
             <p style={{ ...INTER, fontSize: 10, fontWeight: 600, color: "#775a19", letterSpacing: "0.1em", textTransform: "uppercase" as const, marginBottom: 4 }}>COURSE PACK</p>
-            <h3 style={{ ...CASLON, fontSize: 16, fontWeight: 600, color: "#000b21", marginBottom: 4 }}>Upskill Preparation for Students</h3>
+            <h3 style={{ ...CASLON, fontSize: 16, fontWeight: 600, color: "#000b21", marginBottom: 4 }}>WI Upskill Mock Test</h3>
             <p style={{ ...INTER, fontSize: 12, color: "#44474e", lineHeight: 1.5 }}>Full digital access to 7 practice sets with 4 modules each (Reading, Writing, Listening, Speaking).</p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span style={{ ...INTER, fontSize: 13, color: "#44474e" }}>Standard Tuition</span>
-              <span style={{ ...INTER, fontSize: 13, color: "#44474e" }}>NPR 499</span>
+              <span style={{ ...INTER, fontSize: 13, color: "#44474e" }}>NPR 1,500</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span style={{ ...INTER, fontSize: 13, color: "#44474e" }}>Platform Fee</span>
@@ -145,47 +145,29 @@ export default function PaymentPage() {
             </div>
             <div style={{ borderTop: "1px solid #c4c6ce", paddingTop: 10, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ ...INTER, fontSize: 11, fontWeight: 600, color: "#000b21", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>TOTAL DUE</span>
-              <span style={{ ...CASLON, fontSize: 22, fontWeight: 700, color: "#000b21" }}>NPR 499</span>
+              <span style={{ ...CASLON, fontSize: 22, fontWeight: 700, color: "#000b21" }}>NPR 1,500</span>
             </div>
           </div>
         </div>
 
-        {/* eSewa payment card */}
+        {/* Payment instructions card */}
         <div style={{ background: "#ffffff", border: "1px solid #c4c6ce", overflow: "hidden", marginBottom: 16 }}>
-          {/* Card header */}
-          <div style={{ background: "#000b21", padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#fff" }}>qr_code_2</span>
-              <span style={{ ...INTER, fontSize: 11, fontWeight: 600, color: "#fff", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>OFFICIAL PAYMENT GATEWAY</span>
-            </div>
-            <span style={{ background: "#775a19", padding: "3px 8px", ...INTER, fontSize: 9, fontWeight: 700, color: "#fff", letterSpacing: "0.06em" }}>eSewa VERIFIED</span>
+          <div style={{ background: "#000b21", padding: "14px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#fff" }}>phone_in_talk</span>
+            <span style={{ ...INTER, fontSize: 11, fontWeight: 600, color: "#fff", letterSpacing: "0.08em", textTransform: "uppercase" as const }}>HOW TO PAY</span>
           </div>
-
           <div style={{ padding: 20 }}>
-            {/* QR code */}
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-              <div style={{ border: "1px solid #c4c6ce", padding: 12, background: "#fff" }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/qr2.png" alt="Payment QR Code" style={{ width: 180, height: 180, display: "block", objectFit: "contain" }} />
-                <p style={{ ...INTER, fontSize: 10, fontWeight: 600, color: "#44474e", textAlign: "center", marginTop: 8, letterSpacing: "0.08em", textTransform: "uppercase" as const }}>SCAN TO PAY</p>
-              </div>
-            </div>
-
-            {/* Instructions */}
-            <div>
-              <h4 style={{ ...CASLON, fontSize: 16, fontWeight: 600, color: "#000b21", marginBottom: 10 }}>Instructions</h4>
-              <ol style={{ paddingLeft: 18, display: "flex", flexDirection: "column", gap: 8 }}>
-                {[
-                  "Open your eSewa mobile application.",
-                  "Tap the 'Scan & Pay' icon at the bottom.",
-                  "Position your camera to scan the QR code.",
-                  <>Verify the amount <strong>NPR 499</strong> and recipient <strong>Upskill Arch.</strong></>,
-                  "Enter your MPIN to complete the transfer.",
-                ].map((step, i) => (
-                  <li key={i} style={{ ...INTER, fontSize: 13, color: "#44474e", lineHeight: 1.6 }}>{step}</li>
-                ))}
-              </ol>
-            </div>
+            <ol style={{ paddingLeft: 18, display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                <>Open eSewa or any mobile banking app.</>,
+                <>Send <strong>NPR 1,500</strong> to <strong>9869400285</strong> (WI Education).</>,
+                "Take a screenshot of your payment receipt.",
+                <>Message <strong>9869400285</strong> on WhatsApp with your receipt and registered email.</>,
+                "The admin will approve your account within a few hours.",
+              ].map((step, i) => (
+                <li key={i} style={{ ...INTER, fontSize: 13, color: "#44474e", lineHeight: 1.6 }}>{step}</li>
+              ))}
+            </ol>
           </div>
         </div>
 
@@ -199,7 +181,7 @@ export default function PaymentPage() {
           <div>
             <p style={{ ...INTER, fontSize: 13, fontWeight: 700, color: "#000b21", marginBottom: 2 }}>Pay via WhatsApp</p>
             <p style={{ ...INTER, fontSize: 12, color: "#44474e", lineHeight: 1.5 }}>
-              Message <strong>9851093948</strong> on WhatsApp to pay NPR 499 and get approved.
+              Message <strong>9869400285</strong> on WhatsApp to pay NPR 1,500 and get approved.
             </p>
           </div>
         </div>
@@ -232,7 +214,7 @@ export default function PaymentPage() {
             <ul style={{ marginLeft: 25, marginTop: 8, paddingLeft: 14, display: "flex", flexDirection: "column", gap: 5 }}>
               {[
                 "This is a practice tool — it does not guarantee actual exam content.",
-                "Payment does not guarantee admission to any Cambridge examination.",
+                "Payment does not guarantee admission to any official examination.",
                 "Payments are non-refundable once access is activated.",
                 "Materials are for individual use only.",
               ].map((t) => (
@@ -269,11 +251,11 @@ export default function PaymentPage() {
           {submitting ? (
             <><span className="material-symbols-outlined" style={{ fontSize: 18, animation: "spin 1s linear infinite" }}>sync</span>SUBMITTING…</>
           ) : (
-            <>REQUEST ACCESS — NPR 499 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_forward</span></>
+            <>CONFIRM & REQUEST ACCESS <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_forward</span></>
           )}
         </button>
         <p style={{ ...INTER, fontSize: 12, color: "#44474e", textAlign: "center", lineHeight: 1.6 }}>
-          After requesting, contact <strong>9851093948</strong> on WhatsApp to complete payment.
+          After requesting, contact <strong>9869400285</strong> on WhatsApp to complete payment.
         </p>
       </main>
 

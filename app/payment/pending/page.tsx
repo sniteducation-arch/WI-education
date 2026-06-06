@@ -108,12 +108,12 @@ export default function PendingPage() {
           </div>
           <div>
             <p style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 15, fontWeight: 700, color: "#166534" }}>Contact Admin on WhatsApp</p>
-            <p style={{ fontSize: 12, color: "#166534" }}>Pay NPR 499 and get approved</p>
+            <p style={{ fontSize: 12, color: "#166534" }}>Pay NPR 1,500 and get approved</p>
           </div>
         </div>
 
         <p style={{ fontSize: 13, color: "#166534", lineHeight: 1.6, marginBottom: 14 }}>
-          Message <strong>9869400285</strong> on WhatsApp, send your payment of <strong>NPR 499</strong>, and wait for the admin to approve your account.
+          Message <strong>9869400285</strong> on WhatsApp, send your payment of <strong>NPR 1,500</strong>, and wait for the admin to approve your account.
         </p>
 
         <a

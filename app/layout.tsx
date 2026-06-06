@@ -8,7 +8,7 @@ import SplashScreen from "@/components/SplashScreen";
 
 export const metadata: Metadata = {
   title: "WI Upskill",
-  description: "WI Upskill – Cambridge UpSkill exam practice tool for students in Nepal.",
+  description: "WI Upskill Mock Test – exam practice tool for students in Nepal.",
   manifest: "/manifest.json",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "WI Upskill" },
   icons: {

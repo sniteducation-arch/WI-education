@@ -99,7 +99,7 @@ export default function SetDetailPage({ params }: { params: Promise<{ setId: str
                 Advanced Academic Synthesis
               </h2>
               <p style={{ ...INTER, fontSize: 13, color: "#44474e", lineHeight: 1.6, marginBottom: 4 }}>
-                Upskill Preparation for Students · {name}
+                WI Upskill Mock Test · {name}
               </p>
             </div>
             {/* Completion */}
@@ -118,7 +118,7 @@ export default function SetDetailPage({ params }: { params: Promise<{ setId: str
         <div style={{ margin: "16px 20px 0", background: "#f5f3f3", border: "1px solid #c4c6ce", padding: 14 }}>
           <p style={{ ...INTER, fontSize: 13, color: "#44474e", lineHeight: 1.7 }}>
             This practice set is designed to align with the{" "}
-            <strong style={{ color: "#000b21" }}>Cambridge UpSkill assessment</strong>{" "}
+            <strong style={{ color: "#000b21" }}>WI Upskill Mock Test</strong>{" "}
             criteria. Work through each module to build your linguistic precision and confidence.
           </p>
         </div>

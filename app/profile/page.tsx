@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
@@ -8,6 +8,9 @@ import { useAuth } from "@/components/AuthProvider";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import toast from "react-hot-toast";
+
+const CASLON: React.CSSProperties = { fontFamily: "'Libre Caslon Text', Georgia, serif" };
+const INTER: React.CSSProperties = { fontFamily: "'Inter', system-ui, sans-serif" };
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -43,8 +46,8 @@ export default function ProfilePage() {
   };
 
   if (loading) return (
-    <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: 36, height: 36, border: "4px solid #dde1ff", borderTopColor: "#0d2067", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+    <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fbf9f8" }}>
+      <div style={{ width: 32, height: 32, border: "3px solid #eae8e7", borderTopColor: "#000b21", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
@@ -52,39 +55,37 @@ export default function ProfilePage() {
   const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
-    <div style={{ minHeight: "100dvh", background: "#f8f9fa" }}>
+    <div style={{ minHeight: "100dvh", background: "#fbf9f8" }}>
       <TopBar title="Profile" />
       <main style={{ paddingTop: 80, paddingBottom: 100, paddingLeft: 20, paddingRight: 20 }}>
 
         {/* Avatar + name */}
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg, #0d2067, #4a59a1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: 28, fontWeight: 700, color: "#fff", fontFamily: "'Manrope', system-ui, sans-serif" }}>
-            {initials || "ME"}
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div style={{ width: 72, height: 72, background: "#000b21", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+            <span style={{ ...CASLON, fontSize: 26, fontWeight: 700, color: "#fff" }}>{initials || "WI"}</span>
           </div>
-          <h2 style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 22, fontWeight: 700, color: "#0d2067", marginBottom: 4 }}>{name}</h2>
-          <p style={{ fontSize: 14, color: "#454651" }}>{email}</p>
+          <h2 style={{ ...CASLON, fontSize: 22, fontWeight: 700, color: "#000b21", marginBottom: 4 }}>{name}</h2>
+          <p style={{ ...INTER, fontSize: 13, color: "#44474e" }}>{email}</p>
           {paidAt && (
-            <span style={{ display: "inline-block", marginTop: 8, background: "#abf374", color: "#367000", fontSize: 11, fontWeight: 700, padding: "3px 12px", borderRadius: 9999 }}>
-              âœ“ PAID Â· {paidAt}
+            <span style={{ display: "inline-block", marginTop: 10, background: "#000b21", color: "#fff", ...INTER, fontSize: 10, fontWeight: 700, padding: "4px 14px", letterSpacing: "0.08em" }}>
+              PAID · {paidAt}
             </span>
           )}
         </div>
 
         {/* Info cards */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 1, marginBottom: 24, border: "1px solid #c4c6ce" }}>
           {[
-            { icon: "person", label: "Full Name", value: name },
-            { icon: "mail", label: "Email Address", value: email },
-            { icon: "phone", label: "Mobile Number", value: phone || "Not provided" },
-            { icon: "school", label: "Course", value: "Upskill Preparation for Students" },
-          ].map((item) => (
-            <div key={item.label} style={{ background: "#fff", borderRadius: 12, border: "1px solid #c6c5d2", padding: "14px 16px", display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#dde1ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 20, color: "#0d2067" }}>{item.icon}</span>
-              </div>
+            { icon: "person", label: "FULL NAME", value: name },
+            { icon: "mail", label: "EMAIL ADDRESS", value: email },
+            { icon: "phone", label: "MOBILE NUMBER", value: phone || "Not provided" },
+            { icon: "school", label: "COURSE", value: "WI Upskill Mock Test" },
+          ].map((item, idx, arr) => (
+            <div key={item.label} style={{ background: "#fff", padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, borderBottom: idx < arr.length - 1 ? "1px solid #eae8e7" : "none" }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 20, color: "#000b21", flexShrink: 0 }}>{item.icon}</span>
               <div>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#454651", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>{item.label}</p>
-                <p style={{ fontSize: 15, color: "#191c1d", fontWeight: 500 }}>{item.value}</p>
+                <p style={{ ...INTER, fontSize: 10, fontWeight: 600, color: "#44474e", textTransform: "uppercase" as const, letterSpacing: "0.08em", marginBottom: 3 }}>{item.label}</p>
+                <p style={{ ...INTER, fontSize: 14, color: "#000b21", fontWeight: 500 }}>{item.value}</p>
               </div>
             </div>
           ))}
@@ -99,11 +100,11 @@ export default function ProfilePage() {
             <button
               key={item.label}
               onClick={() => router.push(item.href)}
-              style={{ background: "#fff", border: "1px solid #c6c5d2", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", textAlign: "left", width: "100%" }}
+              style={{ background: "#fff", border: "1px solid #c4c6ce", borderRadius: 0, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer", textAlign: "left", width: "100%" }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 20, color: "#0d2067" }}>{item.icon}</span>
-              <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: "#191c1d" }}>{item.label}</span>
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#c6c5d2" }}>chevron_right</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 20, color: "#000b21" }}>{item.icon}</span>
+              <span style={{ flex: 1, ...INTER, fontSize: 14, fontWeight: 600, color: "#000b21" }}>{item.label}</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#75777e" }}>chevron_right</span>
             </button>
           ))}
         </div>
@@ -111,15 +112,14 @@ export default function ProfilePage() {
         {/* Logout */}
         <button
           onClick={handleLogout}
-          style={{ width: "100%", background: "#fff", border: "1.5px solid #fca5a5", borderRadius: 12, padding: "14px 0", fontSize: 16, fontWeight: 700, color: "#dc2626", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "inherit" }}
+          style={{ width: "100%", background: "#fff", border: "1px solid #c4c6ce", borderRadius: 0, padding: "14px 0", ...INTER, fontSize: 13, fontWeight: 700, color: "#ba1a1a", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, letterSpacing: "0.06em", textTransform: "uppercase" as const }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>logout</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>logout</span>
           Log Out
         </button>
       </main>
       <BottomNav />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }
-
-

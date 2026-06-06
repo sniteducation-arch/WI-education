@@ -90,7 +90,7 @@ export default function SplashScreen() {
           fontWeight: 600,
         }}
       >
-        WI Education · Cambridge UpSkill
+        WI Education · Mock Test
       </p>
 
       {/* Bottom loading dots */}

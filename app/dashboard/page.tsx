@@ -124,7 +124,7 @@ export default function DashboardPage() {
                 style={{ ...INTER, background: "#fff", color: "#000b21", border: "none", borderRadius: 0, padding: "11px 20px", fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, textTransform: "uppercase" as const }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>payments</span>
-                REQUEST FULL ACCESS — NPR 499
+                REQUEST FULL ACCESS — NPR 1,500
               </button>
             </div>
           </div>

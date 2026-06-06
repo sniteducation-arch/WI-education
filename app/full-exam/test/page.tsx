@@ -717,7 +717,7 @@ export default function FullExamTest() {
         <div style={{ background: "linear-gradient(135deg, #0d2067, #1e3a8a)", padding: "28px 20px 36px" }}>
           <div style={{ textAlign: "center", marginBottom: 20 }}>
             <span className="material-symbols-outlined" style={{ fontSize: 48, color: "#abf374", fontVariationSettings: "'FILL' 1", marginBottom: 8, display: "block" }}>workspace_premium</span>
-            <h1 style={{ fontFamily: H, fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Cambridge UpSkill Practice</h1>
+            <h1 style={{ fontFamily: H, fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 4 }}>WI Upskill Mock Test</h1>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>Full Exam Transcript · {today}</p>
           </div>
           {/* CEFR card */}
@@ -930,7 +930,7 @@ export default function FullExamTest() {
           {/* Disclaimer */}
           <div style={{ background: "#fff8e1", border: "1.5px solid #fde68a", borderRadius: 12, padding: 14, marginBottom: 20 }}>
             <p style={{ fontSize: 12, color: "#92400e", lineHeight: 1.6 }}>
-              <strong>Disclaimer:</strong> This is a practice exam only. Results do not represent official Cambridge UpSkill Assessment results. Auto-marked score is based on Listening and Reading sections only.
+              <strong>Disclaimer:</strong> This is a practice exam only. Results do not represent official assessment results. Auto-marked score is based on Listening and Reading sections only.
             </p>
           </div>
 

@@ -163,7 +163,7 @@ export default function SignupForm({ onSwitchToLogin }: { onSwitchToLogin: () =>
           marginTop: 4,
         }}
       >
-        {loading ? "Creating account…" : "Create Account – NPR 499"}
+        {loading ? "Creating account…" : "Create Account – NPR 1,500"}
       </button>
 
       <p style={{ textAlign: "center", color: "#454651", fontSize: 14 }}>
