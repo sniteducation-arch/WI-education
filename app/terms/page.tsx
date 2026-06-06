@@ -2,46 +2,46 @@
 import { useRouter } from "next/navigation";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 
-const sections = [
+const sections: { title: string; content: string }[] = [
   {
-    title: “1. Nature of This Service”,
-    content: `WI Upskill Mock Test is a private English language practice tool designed to help students prepare for English proficiency assessments. This application is NOT affiliated with any official examination body.`,
+    title: "1. Nature of This Service",
+    content: "WI Upskill Mock Test is a private English language practice tool designed to help students prepare for English proficiency assessments. This application is NOT affiliated with any official examination body.",
   },
   {
-    title: “2. No Guarantee of Exam Content”,
-    content: `By paying and using this service, you acknowledge and agree that:\n\n• The practice questions, tasks, and content provided in this app do NOT represent the actual questions that will appear in any official examination.\n• This is a mock practice tool only.\n• WI Education Global Pvt. Ltd. does not guarantee that use of this tool will result in any specific grade or outcome in the actual examination.`,
+    title: "2. No Guarantee of Exam Content",
+    content: "By paying and using this service, you acknowledge and agree that:\n\n- The practice questions, tasks, and content provided in this app do NOT represent the actual questions that will appear in any official examination.\n- This is a mock practice tool only.\n- WI Education Global Pvt. Ltd. does not guarantee that use of this tool will result in any specific grade or outcome in the actual examination.",
   },
   {
-    title: “3. Payment & Refund Policy”,
-    content: `The access fee of NPR 1,500 is a one-time, non-refundable payment that grants access to all 7 practice sets. No refund will be issued once access has been granted, except in cases of technical failure where access was never provided. For payment issues, contact us within 48 hours of payment.`,
+    title: "3. Payment & Refund Policy",
+    content: "The access fee of NPR 1,500 is a one-time, non-refundable payment that grants access to all 7 practice sets. No refund will be issued once access has been granted, except in cases of technical failure where access was never provided. For payment issues, contact us within 48 hours of payment.",
   },
   {
-    title: “4. User Responsibilities”,
-    content: `You agree to:\n• Use this platform only for personal study purposes.\n• Not share your account credentials with others.\n• Not reproduce, distribute, or resell any content from this application.\n• Provide accurate information during registration.`,
+    title: "4. User Responsibilities",
+    content: "You agree to:\n- Use this platform only for personal study purposes.\n- Not share your account credentials with others.\n- Not reproduce, distribute, or resell any content from this application.\n- Provide accurate information during registration.",
   },
   {
-    title: “5. Grading & Scores”,
-    content: `Scores and CEFR grades (A1, A2, B1) provided in this app are for self-assessment purposes only. They are based on a practice scoring rubric and do not reflect official assessment standards or your actual examination result.`,
+    title: "5. Grading & Scores",
+    content: "Scores and CEFR grades (A1, A2, B1) provided in this app are for self-assessment purposes only. They are based on a practice scoring rubric and do not reflect official assessment standards or your actual examination result.",
   },
   {
-    title: “6. Privacy”,
-    content: `We collect your name, email address and mobile number for account management purposes only. Your data will not be sold or shared with third parties. Practice results are stored to help you track your progress.`,
+    title: "6. Privacy",
+    content: "We collect your name, email address and mobile number for account management purposes only. Your data will not be sold or shared with third parties. Practice results are stored to help you track your progress.",
   },
   {
-    title: “7. Intellectual Property”,
-    content: `All content in this app — including practice questions, writing prompts, listening transcripts and speaking tasks — is the intellectual property of WI Education Global Pvt. Ltd. Unauthorised reproduction is prohibited.`,
+    title: "7. Intellectual Property",
+    content: "All content in this app, including practice questions, writing prompts, listening transcripts and speaking tasks, is the intellectual property of WI Education Global Pvt. Ltd. Unauthorised reproduction is prohibited.",
   },
   {
-    title: “8. Limitation of Liability”,
-    content: `WI Education Global Pvt. Ltd. shall not be liable for any direct, indirect, incidental or consequential damages arising from the use of this application, including but not limited to examination results.`,
+    title: "8. Limitation of Liability",
+    content: "WI Education Global Pvt. Ltd. shall not be liable for any direct, indirect, incidental or consequential damages arising from the use of this application, including but not limited to examination results.",
   },
   {
-    title: “9. Changes to Terms”,
-    content: `WI Education Global Pvt. Ltd. reserves the right to update these terms at any time. Continued use of the application after changes constitutes acceptance of the updated terms.`,
+    title: "9. Changes to Terms",
+    content: "WI Education Global Pvt. Ltd. reserves the right to update these terms at any time. Continued use of the application after changes constitutes acceptance of the updated terms.",
   },
   {
-    title: “10. Contact”,
-    content: `For any questions or concerns, please contact us via:\nEmail: snit.education@gmail.com\nPhone: +977 9869400285`,
+    title: "10. Contact",
+    content: "For any questions or concerns, please contact us via:\nEmail: snit.education@gmail.com\nPhone: +977 9869400285",
   },
 ];
 
